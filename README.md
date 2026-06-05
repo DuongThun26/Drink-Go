@@ -175,4 +175,122 @@
   + GET /points/history -> Lấy lịch sử điểm thưởng của khách hàng (require auth)
   + POST /points/redeem -> Đổi điểm thưởng lấy voucher (require auth)
 ## Bước 4: Lập kế hoạch phát triển
+### Giai đoạn 1: Backend Core (Ngày 4 - 11)
+- Ngày 1 - 3: Authentication
+  + Xây dựng:
+    * Login
+    * Register
+    * Refresh Token
+    * Logout
+    * Change Password
+    * Forgot Password
+  + JWT:
+    * Access Token
+    * Refresh Token
+  + Redis:
+    * Blacklist Access Token
+    * Whitelist Refresh Token
+- Ngày 4: User + Address
+  + API:
+    * GET /me
+    * GET /addresses
+    * POST /addresses
+    * PUT /addresses
+    * DELETE /addresses
+- Ngày 5: Category
+  + API:
+    * CRUD Category
+- Ngày 6: Product
+  + API:
+    * CRUD Product
+    * CRUD Product Variant
+    * CRUD Topping
+- Ngày 7: Promotion
+  + API:
+    * CRUD Promotion
+    * Validate Voucher
+- Ngày 8: Inventory 
+  + API:
+    * CRUD Inventory
+  + Kiểm tra:
+    * READY_MADE
+    * còn hàng hay không.
+- Ngày 9: Review
+  + API:
+    * Create Review
+    * Delete Review
+    * Get Reviews
+### Giai đoạn 2: Nghiệp vụ bán hàng (Ngày 12 - 16)
+- Ngày 10 - 11: Cart
+  + Guest Cart
+    * session_id
+  + User Cart
+    * user_id
+  + API:
+    * GET /cart
+    * POST /cart/items
+    * PUT /cart/items
+    * DELETE /cart/items
+- Ngày 12: Merge Cart
+  + Khi login:
+    * Guest Cart -> User Cart
+- Ngày 13: Order
+  + API:
+    * POST /orders
+    * GET /orders
+    * GET /orders/{id}
+    * DELETE /orders/{id}
+- Ngày 14 - 15: Payment
+  + API:
+    * POST /payments
+    * GET /payments/{id}
+  + Phương thức thanh toán:
+    * COD
+    * Bank Transfer
+- Ngày 16: Point System
+  + API:
+    * GET /points
+    * GET /points/history
+    * POST /points/redeem
+### Giai đoạn 3: Frontend (Ngày 17 - 22)
+- Ngày 17: Layout
+  + Header
+  + Footer
+  + Navbar
+- Ngày 18
+  + Trang sản phẩm
+    * Danh sách sản phẩm
+    * Chi tiết sản phẩm
+    * Tìm kiếm
+- Ngày 19
+  + Giỏ hàng
+    * Cart
+    * Add To Cart
+    * Update Quantity
+- Ngày 20
+  + Checkout
+    * Đặt hàng
+    * Chọn địa chỉ
+    * Voucher
+- Ngày 21
+  + Đăng nhập
+    * Login
+    * Register
+    * Profile
+    * Address
+  - Ngày 22: Lịch sử đơn hàng
+  + My Orders
+### Giai đoạn 4: Admin (Ngày 23 - 24)
+- Ngày 23
+  + Quản lý
+    * Product
+    * Category
+    * Promotion
+    * Inventory
+- Ngày 24
+  + Dashboard
+    * Doanh thu
+    * Top sản phẩm
+    * Thống kê đơn
+
 ## Bước 5: Phát triển hệ thống 
