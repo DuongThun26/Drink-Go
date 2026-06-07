@@ -14,14 +14,18 @@ import org.springframework.stereotype.Service;
 public class AuthenticationService {
     private final AuthenticationManager authenticationManager;
 
+    private final JWTService jwtService;
 
     public LoginResponse login(LoginRequest request){
         UsernamePasswordAuthenticationToken authenticationToken = new UsernamePasswordAuthenticationToken(request.getUsername(), request.getPassword());
         Authentication authenticate = authenticationManager.authenticate(authenticationToken);
         UserEntity user = (UserEntity) authenticate.getPrincipal();
+
+        String accessToken = jwtService.generateAccessToken(user);
+        String refreshToken = jwtService.generateRefreshToken(user);
         return LoginResponse.builder()
-                .accessToken("1234")
-                .refreshToken("123")
+                .accessToken(accessToken)
+                .refreshToken(refreshToken)
                 .build();
     }
 }

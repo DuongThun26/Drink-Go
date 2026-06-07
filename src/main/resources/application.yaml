@@ -4,7 +4,7 @@ spring:
   datasource:
     url: jdbc:mysql://localhost:3306/drinkgo
     username: root
-    password: 2662004
+    password: ${DB_PASSWORD}
   jpa:
     hibernate:
       ddl-auto: update
@@ -19,3 +19,5 @@ server:
   servlet:
       context-path: /api/v1
 
+
+secretkey: ${SECRETKEY}
