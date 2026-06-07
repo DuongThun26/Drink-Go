@@ -3,11 +3,14 @@ package com.example.drinkgo.authentication.service;
 import com.example.drinkgo.user.entity.UserEntity;
 import com.nimbusds.jose.*;
 import com.nimbusds.jose.crypto.MACSigner;
+import com.nimbusds.jose.crypto.MACVerifier;
 import com.nimbusds.jwt.JWTClaimsSet;
+import com.nimbusds.jwt.SignedJWT;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
+import java.text.ParseException;
 import java.time.temporal.ChronoUnit;
 import java.util.Date;
 
@@ -54,5 +57,17 @@ public class JWTService {
             throw new RuntimeException(e);
         }
         return jwsObject.serialize();
+    }
+
+    public boolean verifyToken(String token) throws ParseException, JOSEException {
+        if(token == null || token.isEmpty()){
+            return false;
+        }
+        SignedJWT signedJWT = SignedJWT.parse(token);
+        Date expirationTime = signedJWT.getJWTClaimsSet().getExpirationTime();
+        if(expirationTime.before(new Date())){
+            return false;
+        }
+        return signedJWT.verify(new MACVerifier(secretKey));
     }
 }
