@@ -1,5 +1,8 @@
 package com.example.drinkgo.authentication.service;
 
+import com.example.drinkgo.authentication.dto.JWTInfor;
+import com.example.drinkgo.authentication.entity.RedisToken;
+import com.example.drinkgo.authentication.repository.RedisTokenRepository;
 import com.example.drinkgo.user.entity.UserEntity;
 import com.nimbusds.jose.*;
 import com.nimbusds.jose.crypto.MACSigner;
@@ -13,6 +16,8 @@ import org.springframework.stereotype.Service;
 import java.text.ParseException;
 import java.time.temporal.ChronoUnit;
 import java.util.Date;
+import java.util.Optional;
+import java.util.UUID;
 
 @Service
 @RequiredArgsConstructor
@@ -20,12 +25,14 @@ public class JWTService {
 
     @Value("${secretkey}")
     private String secretKey;
+    private final RedisTokenRepository redisTokenRepository;
 
     public String generateAccessToken(UserEntity user){
         JWSHeader header = new JWSHeader(JWSAlgorithm.HS512);
         Date issueTime = new Date();
         Date expirationTime = Date.from(issueTime.toInstant().plus(15, ChronoUnit.MINUTES));
         JWTClaimsSet claimsSet = new JWTClaimsSet.Builder()
+                .jwtID(UUID.randomUUID().toString())
                 .subject(user.getUsername())
                 .issueTime(issueTime)
                 .expirationTime(expirationTime)
@@ -45,6 +52,7 @@ public class JWTService {
         Date issueTime = new Date();
         Date expirationTime = Date.from(issueTime.toInstant().plus(14, ChronoUnit.DAYS));
         JWTClaimsSet claimsSet = new JWTClaimsSet.Builder()
+                .jwtID(UUID.randomUUID().toString())
                 .subject(user.getUsername())
                 .issueTime(issueTime)
                 .expirationTime(expirationTime)
@@ -68,6 +76,23 @@ public class JWTService {
         if(expirationTime.before(new Date())){
             return false;
         }
+        String jwtId = signedJWT.getJWTClaimsSet().getJWTID();
+        Optional<RedisToken> byId = redisTokenRepository.findById(jwtId);
+        if(byId.isPresent()){
+            throw new RuntimeException("Invalid token!");
+        }
         return signedJWT.verify(new MACVerifier(secretKey));
+    }
+
+    public JWTInfor parse(String token) throws ParseException {
+        JWTClaimsSet jwtClaimsSet = SignedJWT.parse(token).getJWTClaimsSet();
+        String jwtId = jwtClaimsSet.getJWTID();
+        Date issueTime = jwtClaimsSet.getIssueTime();
+        Date expirationTime = jwtClaimsSet.getExpirationTime();
+        return JWTInfor.builder()
+                .id(jwtId)
+                .issueTime(issueTime)
+                .expirationTime(expirationTime)
+                .build();
     }
 }

@@ -1,7 +1,10 @@
 package com.example.drinkgo.authentication.service;
 
+import com.example.drinkgo.authentication.dto.JWTInfor;
 import com.example.drinkgo.authentication.dto.request.LoginRequest;
 import com.example.drinkgo.authentication.dto.response.LoginResponse;
+import com.example.drinkgo.authentication.entity.RedisToken;
+import com.example.drinkgo.authentication.repository.RedisTokenRepository;
 import com.example.drinkgo.user.entity.UserEntity;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.authentication.AuthenticationManager;
@@ -9,12 +12,16 @@ import org.springframework.security.authentication.UsernamePasswordAuthenticatio
 import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Service;
 
+import java.text.ParseException;
+import java.util.Date;
+
 @Service
 @RequiredArgsConstructor
 public class AuthenticationService {
     private final AuthenticationManager authenticationManager;
 
     private final JWTService jwtService;
+    private final RedisTokenRepository redisTokenRepository;
 
     public LoginResponse login(LoginRequest request){
         UsernamePasswordAuthenticationToken authenticationToken = new UsernamePasswordAuthenticationToken(request.getUsername(), request.getPassword());
@@ -27,5 +34,18 @@ public class AuthenticationService {
                 .accessToken(accessToken)
                 .refreshToken(refreshToken)
                 .build();
+    }
+
+    public void logout(String token) throws ParseException {
+        JWTInfor jwtInfor = jwtService.parse(token);
+        String jwtId = jwtInfor.getId();
+        Date issueTime = jwtInfor.getIssueTime();
+        Date expirationTime = jwtInfor.getExpirationTime();
+        if(expirationTime.before(new Date())) return;
+        RedisToken redisToken = RedisToken.builder()
+                .jwtId(jwtId)
+                .expiredTime(expirationTime.getTime() - issueTime.getTime())
+                .build();
+        redisTokenRepository.save(redisToken);
     }
 }
