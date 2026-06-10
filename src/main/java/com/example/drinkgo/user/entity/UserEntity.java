@@ -1,6 +1,7 @@
 package com.example.drinkgo.user.entity;
 
 import com.example.drinkgo.address.entity.AddressEntity;
+import com.example.drinkgo.common.BaseEntity;
 import com.example.drinkgo.user.enums.UserStatus;
 import jakarta.persistence.*;
 import lombok.*;
@@ -17,7 +18,7 @@ import java.util.List;
 @Setter
 @AllArgsConstructor
 @NoArgsConstructor
-public class UserEntity implements UserDetails {
+public class UserEntity extends BaseEntity implements UserDetails{
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
