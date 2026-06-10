@@ -64,7 +64,8 @@
   + Cart (id, user_id, sesson_id, status)
    Status = [ ACTIVE, CHECKED_OUT, ABANDONED]
   + CartItem (id, cart_id, product_variant_id, quantity)
-  + Category (id, name, code, description)
+  + Category (id, name, code, description, status)
+   Status = [ ACTIVE, INACTIVE]
   + Inventory (id, product_variant_id, quantity, productdate)
   + Order (id, code, totalamount, discountamount, finalamount, status, paymentmethod, note, receivename, receivephone, province, district, ward, detailaddress, user_id)
   Status (PENDING, CONFIRMED, PREPARING, DELIVERING, COMPLETED, CANCELLED)
