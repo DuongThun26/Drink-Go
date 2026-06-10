@@ -1,5 +1,7 @@
 package com.example.drinkgo.user.service;
 
+import com.example.drinkgo.address.dto.request.AddressRequest;
+import com.example.drinkgo.address.service.AddressService;
 import com.example.drinkgo.user.dto.request.UserRequest;
 import com.example.drinkgo.user.dto.response.UserResponse;
 import com.example.drinkgo.user.entity.UserEntity;
@@ -14,8 +16,9 @@ import org.springframework.stereotype.Service;
 public class UserService {
 
     private final UserRepository userRepository;
+    private final AddressService addressService;
 
-    public UserResponse create(UserRequest request){
+    public UserResponse create(UserRequest request, AddressRequest address){
         if(userRepository.existsByUsername(request.getUsername())){
             throw new RuntimeException("User already exists");
         }
@@ -26,6 +29,9 @@ public class UserService {
                 .password(encodedPassword)
                 .build();
         userRepository.save(userEntity);
+        if(address != null){
+            addressService.createWhenRegister(address);
+        }
         return UserResponse.builder()
                 .id(userEntity.getId())
                 .build();

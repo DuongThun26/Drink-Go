@@ -11,6 +11,7 @@ import com.example.drinkgo.authentication.entity.PasswordResetToken;
 import com.example.drinkgo.authentication.repository.AccessTokenBlacklistRepository;
 import com.example.drinkgo.authentication.repository.RefreshTokenWhitelistRepository;
 import com.example.drinkgo.authentication.repository.PasswordResetTokenRepository;
+import com.example.drinkgo.authentication.security.AuthenticationFacade;
 import com.example.drinkgo.user.entity.UserEntity;
 import com.example.drinkgo.user.repository.UserRepository;
 import com.nimbusds.jose.JOSEException;
@@ -38,6 +39,7 @@ public class AuthenticationService {
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
     private final PasswordResetTokenRepository passwordResetTokenRepository;
+    private final AuthenticationFacade authenticationFacade;
 
     public LoginResponse login(LoginRequest request){
         UsernamePasswordAuthenticationToken authenticationToken = new UsernamePasswordAuthenticationToken(request.getUsername(), request.getPassword());
@@ -84,15 +86,11 @@ public class AuthenticationService {
             refreshTokenWhitelistRepository.deleteById(refreshJwtId);
         }
     }
+
     public void change(ChangePasswordRequest request){
         // Lấy user hiện tại từ SecurityContext
-        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-        if(authentication == null || !authentication.isAuthenticated()){
-            throw new BadCredentialsException("User not authenticated!");
-        }
+        UserEntity user = authenticationFacade.getCurrentUser();
 
-        String username = authentication.getName();
-        UserEntity user = userRepository.findByUsername(username).orElseThrow(() -> new UsernameNotFoundException("User not found!"));
         // Verify mật khẩu cũ
         if(user.getPassword() == null || !passwordEncoder.matches(request.getOldPassword(), user.getPassword())){
             throw new BadCredentialsException("Old password is incorrect!");
@@ -146,4 +144,5 @@ public class AuthenticationService {
         userRepository.save(user);
         passwordResetTokenRepository.deleteById(token);
     }
+
 }
