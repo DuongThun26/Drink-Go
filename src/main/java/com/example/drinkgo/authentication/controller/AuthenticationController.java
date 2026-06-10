@@ -1,10 +1,6 @@
 package com.example.drinkgo.authentication.controller;
 
-import com.example.drinkgo.authentication.dto.request.ChangePasswordRequest;
-import com.example.drinkgo.authentication.dto.request.ForgotPasswordRequest;
-import com.example.drinkgo.authentication.dto.request.LoginRequest;
-import com.example.drinkgo.authentication.dto.request.RefreshRequest;
-import com.example.drinkgo.authentication.dto.request.ResetPasswordRequest;
+import com.example.drinkgo.authentication.dto.request.*;
 import com.example.drinkgo.authentication.dto.response.ForgotPasswordResponse;
 import com.example.drinkgo.authentication.dto.response.LoginResponse;
 import com.example.drinkgo.authentication.service.AuthenticationService;
@@ -36,8 +32,8 @@ public class AuthenticationController {
     }
 
     @PostMapping(value = "/auth/register")
-    public UserResponse register(@Valid @RequestBody UserRequest request){
-        return userService.create(request);
+    public UserResponse register(@Valid @RequestBody RegisterRequest request){
+        return userService.create(new UserRequest(request.getUsername(), request.getPassword()), request.getAddressRequest());
     }
 
     @PostMapping(value = "/auth/refresh")

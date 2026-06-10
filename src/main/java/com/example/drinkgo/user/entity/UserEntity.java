@@ -1,5 +1,6 @@
 package com.example.drinkgo.user.entity;
 
+import com.example.drinkgo.address.entity.AddressEntity;
 import com.example.drinkgo.user.enums.UserStatus;
 import jakarta.persistence.*;
 import lombok.*;
@@ -50,6 +51,9 @@ public class UserEntity implements UserDetails {
         inverseJoinColumns = @JoinColumn(name = "role_id")
     )
     private List<RoleEntity> roles;
+
+    @OneToMany(fetch = FetchType.EAGER, mappedBy = "user")
+    private List<AddressEntity> addresses;
 
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {
