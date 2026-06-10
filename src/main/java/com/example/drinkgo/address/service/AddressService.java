@@ -3,14 +3,11 @@ package com.example.drinkgo.address.service;
 import com.example.drinkgo.address.dto.request.AddressRequest;
 import com.example.drinkgo.address.dto.response.AddressResponse;
 import com.example.drinkgo.address.entity.AddressEntity;
+import com.example.drinkgo.address.exception.AddressNotFoundException;
 import com.example.drinkgo.address.repository.AddressRepository;
 import com.example.drinkgo.authentication.security.AuthenticationFacade;
 import com.example.drinkgo.user.entity.UserEntity;
-import com.example.drinkgo.user.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
-import org.springframework.security.core.Authentication;
-import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
@@ -80,7 +77,8 @@ public class AddressService {
 
     public void update(Long id, AddressRequest request){
         UserEntity user = authenticationFacade.getCurrentUser();
-        AddressEntity address = addressRepository.findByIdAndUserId(id, user.getId()).orElseThrow(() -> new RuntimeException("Not found address!"));
+        AddressEntity address = addressRepository.findByIdAndUserId(id, user.getId())
+                .orElseThrow(() -> new AddressNotFoundException("Address not found with id: " + id));
         address.setReceivename(request.getReceivename());
         address.setReceivephone(request.getReceivephone());
         address.setProvince(request.getProvince());
@@ -92,8 +90,11 @@ public class AddressService {
 
     public void delete(Long id){
         UserEntity user = authenticationFacade.getCurrentUser();
-        if(addressRepository.existsByIdAndUserId(id, user.getId())){
+        boolean exists = addressRepository.existsByIdAndUserId(id, user.getId());
+        if(exists){
             addressRepository.deleteById(id);
+        } else {
+            throw new AddressNotFoundException("Address not found with id: " + id);
         }
     }
 }

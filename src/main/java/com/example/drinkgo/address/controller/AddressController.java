@@ -5,6 +5,7 @@ import com.example.drinkgo.address.dto.response.AddressResponse;
 import com.example.drinkgo.address.service.AddressService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.*;
+import jakarta.validation.Valid;
 
 import java.util.List;
 
@@ -29,12 +30,12 @@ public class AddressController {
     }
 
     @PostMapping
-    public Long create(@RequestBody AddressRequest request){
+    public Long create(@Valid @RequestBody AddressRequest request){
         return addressService.create(request);
     }
 
     @PutMapping(value = "/{id}")
-    public void update(@PathVariable Long id, @RequestBody AddressRequest request){
+    public void update(@PathVariable Long id, @Valid @RequestBody AddressRequest request){
         addressService.update(id, request);
     }
 
