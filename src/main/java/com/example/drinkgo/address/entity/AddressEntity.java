@@ -1,5 +1,6 @@
 package com.example.drinkgo.address.entity;
 
+import com.example.drinkgo.common.BaseEntity;
 import com.example.drinkgo.user.entity.UserEntity;
 import jakarta.persistence.*;
 import lombok.*;
@@ -11,7 +12,7 @@ import lombok.*;
 @NoArgsConstructor
 @AllArgsConstructor
 @Table(name = "addresses")
-public class AddressEntity {
+public class AddressEntity extends BaseEntity {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
