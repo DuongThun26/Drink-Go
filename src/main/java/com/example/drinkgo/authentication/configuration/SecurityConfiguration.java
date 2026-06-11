@@ -38,6 +38,7 @@ public class SecurityConfiguration {
                 .authorizeHttpRequests((authorize) -> authorize
                         .requestMatchers(listPermit).permitAll()
                         .requestMatchers(HttpMethod.POST, "/users/me/addresses").permitAll()
+                        .requestMatchers(HttpMethod.GET, "/categories", "/categories/{id}").permitAll()
                         .anyRequest().authenticated()
                 )
                 .oauth2ResourceServer((oauth2) -> oauth2
