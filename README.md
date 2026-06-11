@@ -176,8 +176,8 @@
   + GET /points/history -> Lấy lịch sử điểm thưởng của khách hàng (require auth)
   + POST /points/redeem -> Đổi điểm thưởng lấy voucher (require auth)
 ## Bước 4: Lập kế hoạch phát triển
-### Giai đoạn 1: Backend Core (Ngày 4 - 11)
-- Ngày 1 - 3: Authentication
+### Giai đoạn 1: Backend Core (Ngày 6 - 15)
+- Ngày 6 - 9: Authentication
   + Xây dựng:
     * Login
     * Register
@@ -191,38 +191,38 @@
   + Redis:
     * Blacklist Access Token
     * Whitelist Refresh Token
-- Ngày 4: User + Address
+- Ngày 10: User + Address
   + API:
     * GET /me
     * GET /addresses
     * POST /addresses
     * PUT /addresses
     * DELETE /addresses
-- Ngày 5: Category
+- Ngày 11: Category
   + API:
     * CRUD Category
-- Ngày 6: Product
+- Ngày 12: Product
   + API:
     * CRUD Product
     * CRUD Product Variant
     * CRUD Topping
-- Ngày 7: Promotion
+- Ngày 13: Promotion
   + API:
     * CRUD Promotion
     * Validate Voucher
-- Ngày 8: Inventory 
+- Ngày 14: Inventory 
   + API:
     * CRUD Inventory
   + Kiểm tra:
     * READY_MADE
     * còn hàng hay không.
-- Ngày 9: Review
+- Ngày 15: Review
   + API:
     * Create Review
     * Delete Review
     * Get Reviews
-### Giai đoạn 2: Nghiệp vụ bán hàng (Ngày 12 - 16)
-- Ngày 10 - 11: Cart
+### Giai đoạn 2: Nghiệp vụ bán hàng (Ngày 16 - 22)
+- Ngày 16 - 17: Cart
   + Guest Cart
     * session_id
   + User Cart
@@ -232,63 +232,63 @@
     * POST /cart/items
     * PUT /cart/items
     * DELETE /cart/items
-- Ngày 12: Merge Cart
+- Ngày 18: Merge Cart
   + Khi login:
     * Guest Cart -> User Cart
-- Ngày 13: Order
+- Ngày 19: Order
   + API:
     * POST /orders
     * GET /orders
     * GET /orders/{id}
     * DELETE /orders/{id}
-- Ngày 14 - 15: Payment
+- Ngày 20 - 21: Payment
   + API:
     * POST /payments
     * GET /payments/{id}
   + Phương thức thanh toán:
     * COD
     * Bank Transfer
-- Ngày 16: Point System
+- Ngày 22: Point System
   + API:
     * GET /points
     * GET /points/history
     * POST /points/redeem
-### Giai đoạn 3: Frontend (Ngày 17 - 22)
-- Ngày 17: Layout
+### Giai đoạn 3: Frontend (Ngày 23 - 28)
+- Ngày 23: Layout
   + Header
   + Footer
   + Navbar
-- Ngày 18
+- Ngày 24
   + Trang sản phẩm
     * Danh sách sản phẩm
     * Chi tiết sản phẩm
     * Tìm kiếm
-- Ngày 19
+- Ngày 25
   + Giỏ hàng
     * Cart
     * Add To Cart
     * Update Quantity
-- Ngày 20
+- Ngày 26
   + Checkout
     * Đặt hàng
     * Chọn địa chỉ
     * Voucher
-- Ngày 21
+- Ngày 27
   + Đăng nhập
     * Login
     * Register
     * Profile
     * Address
-  - Ngày 22: Lịch sử đơn hàng
+  - Ngày 28: Lịch sử đơn hàng
   + My Orders
-### Giai đoạn 4: Admin (Ngày 23 - 24)
-- Ngày 23
+### Giai đoạn 4: Admin (Ngày 29 - 30)
+- Ngày 29
   + Quản lý
     * Product
     * Category
     * Promotion
     * Inventory
-- Ngày 24
+- Ngày 30
   + Dashboard
     * Doanh thu
     * Top sản phẩm
