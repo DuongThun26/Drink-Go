@@ -15,9 +15,12 @@ import org.springframework.security.config.annotation.web.configurers.AbstractHt
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
+import org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationConverter;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Collectors;
 
 @Configuration
 @EnableWebSecurity
@@ -33,16 +36,29 @@ public class SecurityConfiguration {
     };
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
+        // Configure JWT -> GrantedAuthority conversion using `roles` claim
+        JwtAuthenticationConverter jwtAuthConverter = new JwtAuthenticationConverter();
+        jwtAuthConverter.setJwtGrantedAuthoritiesConverter(jwt -> {
+            List<String> roles = jwt.getClaimAsStringList("roles");
+            if (roles == null || roles.isEmpty()) {
+                return List.of();
+            }
+            return roles.stream()
+                    .map(r -> new SimpleGrantedAuthority("ROLE_" + r))
+                    .collect(Collectors.toList());
+        });
+
         http
                 .csrf(AbstractHttpConfigurer::disable)
                 .authorizeHttpRequests((authorize) -> authorize
                         .requestMatchers(listPermit).permitAll()
                         .requestMatchers(HttpMethod.POST, "/users/me/addresses").permitAll()
                         .requestMatchers(HttpMethod.GET, "/categories", "/categories/{id}").permitAll()
+                        .requestMatchers("/admin/**").hasRole("ADMIN")
                         .anyRequest().authenticated()
                 )
                 .oauth2ResourceServer((oauth2) -> oauth2
-                        .jwt(jwtConfigurer -> jwtConfigurer.decoder(jwtDecoderConfiguration))
+                        .jwt(jwtConfigurer -> jwtConfigurer.decoder(jwtDecoderConfiguration).jwtAuthenticationConverter(jwtAuthConverter))
                 );
         return http.build();
     }

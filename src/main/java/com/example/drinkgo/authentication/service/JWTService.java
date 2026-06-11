@@ -8,6 +8,7 @@ import com.example.drinkgo.authentication.entity.RefreshTokenWhitelist;
 import com.example.drinkgo.authentication.repository.AccessTokenBlacklistRepository;
 import com.example.drinkgo.authentication.repository.RefreshTokenWhitelistRepository;
 import com.example.drinkgo.user.entity.UserEntity;
+import com.example.drinkgo.user.entity.RoleEntity;
 import com.nimbusds.jose.*;
 import com.nimbusds.jose.crypto.MACSigner;
 import com.nimbusds.jose.crypto.MACVerifier;
@@ -20,8 +21,10 @@ import org.springframework.stereotype.Service;
 import java.text.ParseException;
 import java.time.temporal.ChronoUnit;
 import java.util.Date;
+import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -41,6 +44,11 @@ public class JWTService {
         Date issueTime = new Date();
         String jwtId = UUID.randomUUID().toString();
         Date expirationTime = Date.from(issueTime.toInstant().plus(15, ChronoUnit.MINUTES));
+        // include roles in token for authorization mapping later
+        List<String> roles = user.getRoles() == null ? List.of() : user.getRoles().stream()
+                .map(RoleEntity::getCode)
+                .collect(Collectors.toList());
+
         JWTClaimsSet claimsSet = new JWTClaimsSet.Builder()
                 .jwtID(jwtId)
                 .subject(user.getUsername())
@@ -48,6 +56,7 @@ public class JWTService {
                 .expirationTime(expirationTime)
                 .claim(refreshId, refreshJwtId)
                 .claim(CLAIM_TYPE, TYPE_ACCESS)
+                .claim("roles", roles)
                 .build();
         Payload payload = new Payload(claimsSet.toJSONObject());
         JWSObject jwsObject = new JWSObject(header, payload);
