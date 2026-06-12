@@ -53,7 +53,7 @@ public class SecurityConfiguration {
                 .authorizeHttpRequests((authorize) -> authorize
                         .requestMatchers(listPermit).permitAll()
                         .requestMatchers(HttpMethod.POST, "/users/me/addresses").permitAll()
-                        .requestMatchers(HttpMethod.GET, "/categories", "/categories/{id}", "/products", "/products/{id}", "/toppings").permitAll()
+                        .requestMatchers(HttpMethod.GET, "/categories", "/categories/{id}", "/products", "/products/{id}", "/toppings", "/products/{productId}/variants").permitAll()
                         .requestMatchers("/admin/**").hasRole("ADMIN")
                         .anyRequest().authenticated()
                 )
