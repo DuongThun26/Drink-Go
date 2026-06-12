@@ -6,6 +6,8 @@ import com.example.drinkgo.category.entity.CategoryEntity;
 import com.example.drinkgo.category.enums.CategoryStatus;
 import com.example.drinkgo.category.exception.CategoryNotFoundException;
 import com.example.drinkgo.category.repository.CategoryRepository;
+import com.example.drinkgo.product.repository.ProductRepository;
+import com.example.drinkgo.category.exception.CategoryHasProductsException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -18,6 +20,7 @@ import java.util.List;
 public class CategoryService {
 
     private final CategoryRepository categoryRepository;
+    private final ProductRepository productRepository;
 
     @Transactional(readOnly = true)
     public List<CategoryResponse> getAllCategories() {
@@ -95,6 +98,9 @@ public class CategoryService {
 
     public void deleteCategory(Long id){
         CategoryEntity categoryEntity = categoryRepository.findById(id).orElseThrow(() -> new CategoryNotFoundException("Category not found!"));
+        if (productRepository.existsByCategoryId(id)) {
+            throw new CategoryHasProductsException("Cannot delete category with id " + id + " because it has associated products.");
+        }
         categoryRepository.delete(categoryEntity);
     }
 }
