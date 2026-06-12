@@ -2,11 +2,14 @@ package com.example.drinkgo.category.entity;
 
 import com.example.drinkgo.category.enums.CategoryStatus;
 import com.example.drinkgo.common.BaseEntity;
+import com.example.drinkgo.product.entity.ProductEntity;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
 import lombok.*;
+
+import java.util.List;
 
 @Entity
 @Getter
@@ -37,4 +40,7 @@ public class CategoryEntity extends BaseEntity {
     @Enumerated(EnumType.STRING)
     @Column(name = "status")
     private CategoryStatus status;
+
+    @OneToMany(mappedBy = "category", fetch = FetchType.LAZY)
+    private List<ProductEntity> products;
 }
