@@ -8,6 +8,8 @@ import com.example.drinkgo.product.entity.ProductEntity;
 import com.example.drinkgo.product.exception.ProductNotFoundException;
 import com.example.drinkgo.product.exception.ToppingNotFoundException;
 import com.example.drinkgo.product.repository.ProductRepository;
+import com.example.drinkgo.product.repository.ProductVariantRepository;
+import com.example.drinkgo.product.exception.ProductHasVariantsException;
 import lombok.RequiredArgsConstructor;
 import org.modelmapper.ModelMapper;
 import org.springframework.stereotype.Service;
@@ -22,6 +24,7 @@ public class ProductService {
     private final ProductRepository productRepository;
     private final CategoryRepository categoryRepository;
     private final ModelMapper modelMapper;
+    private final ProductVariantRepository productVariantRepository;
 
     public List<ProductResponse> getAllProducts(){
         return productRepository.findAll().stream()
@@ -62,6 +65,9 @@ public class ProductService {
     public void deleteProduct(Long id){
         ProductEntity product = productRepository.findById(id)
                 .orElseThrow(() -> new ProductNotFoundException("Product not found with id: " + id));
+        if (productVariantRepository.existsByProductId(id)){
+            throw new ProductHasVariantsException("Cannot delete product with id " + id + " because it has associated variants.");
+        }
 
         productRepository.delete(product);
     }
