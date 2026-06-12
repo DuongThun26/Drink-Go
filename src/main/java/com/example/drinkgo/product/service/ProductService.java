@@ -1,10 +1,16 @@
 package com.example.drinkgo.product.service;
 
+import com.example.drinkgo.category.dto.response.CategoryResponse;
 import com.example.drinkgo.category.entity.CategoryEntity;
 import com.example.drinkgo.category.repository.CategoryRepository;
 import com.example.drinkgo.product.dto.request.ProductRequest;
+import com.example.drinkgo.product.dto.response.ProductDetailResponse;
 import com.example.drinkgo.product.dto.response.ProductResponse;
+import com.example.drinkgo.product.dto.response.ProductVariantResponse;
+import com.example.drinkgo.product.dto.response.ToppingResponse;
 import com.example.drinkgo.product.entity.ProductEntity;
+import com.example.drinkgo.product.entity.ProductVariantEntity;
+import com.example.drinkgo.product.entity.ToppingEntity;
 import com.example.drinkgo.product.exception.ProductNotFoundException;
 import com.example.drinkgo.product.exception.ToppingNotFoundException;
 import com.example.drinkgo.product.repository.ProductRepository;
@@ -30,6 +36,57 @@ public class ProductService {
         return productRepository.findAll().stream()
                 .map(productEntity -> modelMapper.map(productEntity, ProductResponse.class))
                 .collect(Collectors.toList());
+    }
+
+    public ProductDetailResponse getProductById(Long id){
+        ProductEntity product = productRepository.findById(id)
+                .orElseThrow(() -> new ProductNotFoundException("Product not found with id: " + id));
+
+        CategoryEntity category = product.getCategory();
+        List<ProductVariantEntity> variants = product.getVariants();
+        List<ToppingEntity> toppings = product.getToppings();
+
+        // Map category
+        CategoryResponse categoryResponse = CategoryResponse.builder()
+                .id(category.getId())
+                .name(category.getName())
+                .code(category.getCode())
+                .description(category.getDescription())
+                .status(category.getStatus().toString())
+                .build();
+
+        // Map variants
+        List<ProductVariantResponse> variantResponses = variants != null ?
+                variants.stream()
+                .map(variant -> ProductVariantResponse.builder()
+                                .id(variant.getId())
+                                .sizeName(variant.getSizeName())
+                                .price(variant.getPrice())
+                                .productId(variant.getProduct().getId())
+                                .build())
+                .collect(Collectors.toList()) : List.of();
+
+        // Map toppings
+        List<ToppingResponse> toppingResponses = toppings != null ?
+                toppings.stream()
+                .map(topping -> ToppingResponse.builder()
+                                .id(topping.getId())
+                                .name(topping.getName())
+                                .price(topping.getPrice())
+                                .status(topping.getStatus())
+                                .build())
+                .collect(Collectors.toList()) : List.of();
+
+        return ProductDetailResponse.builder()
+                .id(product.getId())
+                .name(product.getName())
+                .images(product.getImages())
+                .description(product.getDescription())
+                .productType(product.getProductType())
+                .category(categoryResponse)
+                .variants(variantResponses)
+                .toppings(toppingResponses)
+                .build();
     }
 
     public ProductResponse createProduct(ProductRequest request){

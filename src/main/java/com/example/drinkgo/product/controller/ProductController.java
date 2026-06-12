@@ -1,6 +1,7 @@
 package com.example.drinkgo.product.controller;
 
 import com.example.drinkgo.product.dto.request.ProductRequest;
+import com.example.drinkgo.product.dto.response.ProductDetailResponse;
 import com.example.drinkgo.product.dto.response.ProductResponse;
 import com.example.drinkgo.product.service.ProductService;
 import jakarta.validation.Valid;
@@ -19,6 +20,11 @@ public class ProductController {
     @GetMapping(value = "/products")
     public List<ProductResponse> getAllProducts(){
         return productService.getAllProducts();
+    }
+
+    @GetMapping(value = "/products/{id}")
+    public ProductDetailResponse getProductById(@PathVariable Long id){
+        return productService.getProductById(id);
     }
 
     @PostMapping(value = "/admin/products")
