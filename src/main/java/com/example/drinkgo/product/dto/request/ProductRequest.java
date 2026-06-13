@@ -19,5 +19,6 @@ public class ProductRequest {
     @NotNull(message = "Product type must not be null")
     private ProductType productType;
 
+    @NotNull
     private Long categoryId;
 }

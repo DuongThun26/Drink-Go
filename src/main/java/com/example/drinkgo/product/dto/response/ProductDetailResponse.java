@@ -1,6 +1,5 @@
 package com.example.drinkgo.product.dto.response;
 
-import com.example.drinkgo.category.dto.response.CategoryResponse;
 import com.example.drinkgo.product.enums.ProductType;
 import lombok.*;
 
@@ -17,7 +16,7 @@ public class ProductDetailResponse {
     private List<String> images;
     private String description;
     private ProductType productType;
-    private CategoryResponse category;
-    private List<ProductVariantResponse> variants;
+    private String category;
+    private List<ProductVariantSummaryResponse> variants;
     private List<ToppingResponse> toppings;
 }

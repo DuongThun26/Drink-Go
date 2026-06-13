@@ -55,7 +55,7 @@ public class UserEntity extends BaseEntity implements UserDetails{
     )
     private List<RoleEntity> roles;
 
-    @OneToMany(fetch = FetchType.EAGER, mappedBy = "user")
+    @OneToMany(fetch = FetchType.LAZY, mappedBy = "user")
     private List<AddressEntity> addresses;
 
     @Override

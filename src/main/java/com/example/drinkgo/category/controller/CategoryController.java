@@ -1,6 +1,7 @@
 package com.example.drinkgo.category.controller;
 
 import com.example.drinkgo.category.dto.request.CategoryRequest;
+import com.example.drinkgo.category.dto.response.CategoryDetailResponse;
 import com.example.drinkgo.category.dto.response.CategoryResponse;
 import com.example.drinkgo.category.service.CategoryService;
 import jakarta.validation.Valid;
@@ -24,8 +25,8 @@ public class CategoryController {
     }
 
     @GetMapping("/categories/{id}")
-    public ResponseEntity<CategoryResponse> getCategoryById(@PathVariable Long id) {
-        CategoryResponse category = categoryService.getCategoryById(id);
+    public ResponseEntity<CategoryDetailResponse> getCategoryById(@PathVariable Long id) {
+        CategoryDetailResponse category = categoryService.getCategoryById(id);
         return ResponseEntity.ok(category);
     }
 
