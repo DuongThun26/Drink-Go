@@ -1,27 +1,23 @@
 package com.example.drinkgo.product.service;
 
-import com.example.drinkgo.category.dto.response.CategoryResponse;
 import com.example.drinkgo.category.entity.CategoryEntity;
+import com.example.drinkgo.category.exception.CategoryHasProductsException;
 import com.example.drinkgo.category.repository.CategoryRepository;
 import com.example.drinkgo.product.dto.request.ProductRequest;
 import com.example.drinkgo.product.dto.response.ProductDetailResponse;
 import com.example.drinkgo.product.dto.response.ProductResponse;
-import com.example.drinkgo.product.dto.response.ProductVariantResponse;
-import com.example.drinkgo.product.dto.response.ToppingResponse;
 import com.example.drinkgo.product.entity.ProductEntity;
-import com.example.drinkgo.product.entity.ProductVariantEntity;
-import com.example.drinkgo.product.entity.ToppingEntity;
+import com.example.drinkgo.product.exception.ProductHasVariantsException;
 import com.example.drinkgo.product.exception.ProductNotFoundException;
 import com.example.drinkgo.product.exception.ToppingNotFoundException;
+import com.example.drinkgo.product.mapper.ProductMapper;
 import com.example.drinkgo.product.repository.ProductRepository;
 import com.example.drinkgo.product.repository.ProductVariantRepository;
-import com.example.drinkgo.product.exception.ProductHasVariantsException;
 import lombok.RequiredArgsConstructor;
-import org.modelmapper.ModelMapper;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
-import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -29,77 +25,27 @@ public class ProductService {
 
     private final ProductRepository productRepository;
     private final CategoryRepository categoryRepository;
-    private final ModelMapper modelMapper;
+    private final ProductMapper productMapper;
     private final ProductVariantRepository productVariantRepository;
 
     public List<ProductResponse> getAllProducts(){
-        return productRepository.findAll().stream()
-                .map(productEntity -> modelMapper.map(productEntity, ProductResponse.class))
-                .collect(Collectors.toList());
+        return productMapper.toListProduct(productRepository.findAll());
     }
 
+    @Transactional(readOnly = true)
     public ProductDetailResponse getProductById(Long id){
         ProductEntity product = productRepository.findById(id)
                 .orElseThrow(() -> new ProductNotFoundException("Product not found with id: " + id));
-
-        CategoryEntity category = product.getCategory();
-        List<ProductVariantEntity> variants = product.getVariants();
-        List<ToppingEntity> toppings = product.getToppings();
-
-        // Map category
-        CategoryResponse categoryResponse = CategoryResponse.builder()
-                .id(category.getId())
-                .name(category.getName())
-                .code(category.getCode())
-                .description(category.getDescription())
-                .status(category.getStatus().toString())
-                .build();
-
-        // Map variants
-        List<ProductVariantResponse> variantResponses = variants != null ?
-                variants.stream()
-                .map(variant -> ProductVariantResponse.builder()
-                                .id(variant.getId())
-                                .sizeName(variant.getSizeName())
-                                .price(variant.getPrice())
-                                .productId(variant.getProduct().getId())
-                                .build())
-                .collect(Collectors.toList()) : List.of();
-
-        // Map toppings
-        List<ToppingResponse> toppingResponses = toppings != null ?
-                toppings.stream()
-                .map(topping -> ToppingResponse.builder()
-                                .id(topping.getId())
-                                .name(topping.getName())
-                                .price(topping.getPrice())
-                                .status(topping.getStatus())
-                                .build())
-                .collect(Collectors.toList()) : List.of();
-
-        return ProductDetailResponse.builder()
-                .id(product.getId())
-                .name(product.getName())
-                .images(product.getImages())
-                .description(product.getDescription())
-                .productType(product.getProductType())
-                .category(categoryResponse)
-                .variants(variantResponses)
-                .toppings(toppingResponses)
-                .build();
+        return productMapper.toDetailResponse(product);
     }
 
     public ProductResponse createProduct(ProductRequest request){
-        CategoryEntity category = categoryRepository.findById(request.getCategoryId()).orElseThrow(() -> new ToppingNotFoundException("Category does not exits"));
-        ProductEntity product = ProductEntity.builder()
-                .name(request.getName())
-                .images(request.getImages())
-                .description(request.getDescription())
-                .productType(request.getProductType())
-                .category(category)
-                .build();
+        if(!categoryRepository.existsById(request.getCategoryId())){
+            throw new CategoryHasProductsException("Category does not exists");
+        }
+        ProductEntity product = productMapper.toEntity(request);
         productRepository.save(product);
-        return modelMapper.map(product, ProductResponse.class);
+        return productMapper.toResponse(product);
     }
 
     public ProductResponse updateProduct(Long id, ProductRequest request){
@@ -109,14 +55,10 @@ public class ProductService {
         CategoryEntity category = categoryRepository.findById(request.getCategoryId())
                 .orElseThrow(() -> new ToppingNotFoundException("Category does not exist"));
 
-        product.setName(request.getName());
-        product.setImages(request.getImages());
-        product.setDescription(request.getDescription());
-        product.setProductType(request.getProductType());
+        productMapper.updateEntity(request, product);
         product.setCategory(category);
-
         ProductEntity updated = productRepository.save(product);
-        return modelMapper.map(updated, ProductResponse.class);
+        return productMapper.toResponse(updated);
     }
 
     public void deleteProduct(Long id){
@@ -125,7 +67,6 @@ public class ProductService {
         if (productVariantRepository.existsByProductId(id)){
             throw new ProductHasVariantsException("Cannot delete product with id " + id + " because it has associated variants.");
         }
-
         productRepository.delete(product);
     }
 

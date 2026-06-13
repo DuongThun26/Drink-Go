@@ -4,13 +4,13 @@ import com.example.drinkgo.address.dto.request.AddressRequest;
 import com.example.drinkgo.address.dto.response.AddressResponse;
 import com.example.drinkgo.address.entity.AddressEntity;
 import com.example.drinkgo.address.exception.AddressNotFoundException;
+import com.example.drinkgo.address.mapper.AddressMapper;
 import com.example.drinkgo.address.repository.AddressRepository;
 import com.example.drinkgo.authentication.security.AuthenticationFacade;
 import com.example.drinkgo.user.entity.UserEntity;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
-import java.util.ArrayList;
 import java.util.List;
 
 @Service
@@ -19,24 +19,12 @@ public class AddressService {
 
     private final AddressRepository addressRepository;
     private final AuthenticationFacade authenticationFacade;
+    private final AddressMapper addressMapper;
 
     public List<AddressResponse> getAllForCurrentUser(){
         UserEntity user = authenticationFacade.getCurrentUser();
         List<AddressEntity> addressEntities = addressRepository.findAllByUser(user);
-        List<AddressResponse> addresses = new ArrayList<>();
-        for(AddressEntity e : addressEntities){
-            AddressResponse address = AddressResponse.builder()
-                    .id(e.getId())
-                    .receivename(e.getReceivename())
-                    .receivephone(e.getReceivephone())
-                    .province(e.getProvince())
-                    .district(e.getDistrict())
-                    .ward(e.getWard())
-                    .detailaddress(e.getDetailaddress())
-                    .build();
-            addresses.add(address);
-        }
-        return addresses;
+        return addressMapper.toListResponse(addressEntities);
     }
     // Guest đặt hàng không cần login
     public Long createForGuest(AddressRequest request){
