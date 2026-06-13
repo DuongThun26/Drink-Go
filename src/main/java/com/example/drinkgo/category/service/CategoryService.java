@@ -26,15 +26,8 @@ public class CategoryService {
 
     @Transactional(readOnly = true)
     public List<CategoryResponse> getAllCategories() {
-        try {
-            List<CategoryEntity> categoryEntities = categoryRepository.findAll();
-            if (categoryEntities.isEmpty()) {
-                throw new CategoryNotFoundException("No categories found");
-            }
-            return categoryMapper.toListResponse(categoryEntities);
-        } catch (Exception e) {
-            throw new RuntimeException("Failed to fetch categories", e);
-        }
+        List<CategoryEntity> categoryEntities = categoryRepository.findAll();
+        return categoryMapper.toListResponse(categoryEntities);
     }
     @Transactional(readOnly = true)
     public CategoryDetailResponse getCategoryById(Long id){

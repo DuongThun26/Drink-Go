@@ -30,7 +30,7 @@ public class AddressController {
     }
 
     @PostMapping
-    public Long create(@Valid @RequestBody AddressRequest request){
+    public AddressResponse create(@Valid @RequestBody AddressRequest request){
         return addressService.create(request);
     }
 
@@ -44,3 +44,4 @@ public class AddressController {
         addressService.delete(id);
     }
 }
+

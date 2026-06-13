@@ -26,53 +26,36 @@ public class AddressService {
         List<AddressEntity> addressEntities = addressRepository.findAllByUser(user);
         return addressMapper.toListResponse(addressEntities);
     }
-    // Guest đặt hàng không cần login
-    public Long createForGuest(AddressRequest request){
-        return null;
+
+    public AddressResponse createForGuest(AddressRequest request){
+        AddressEntity address = addressMapper.toEntity(request);
+        address.setUser(null);
+        addressRepository.save(address);
+        return addressMapper.toResponse(address);
     }
 
-    // Khi đăng kí thì điền luôn địa chỉ
-    public Long createWhenRegister(AddressRequest request){
-        UserEntity user = authenticationFacade.getCurrentUser();
-        AddressEntity address = AddressEntity.builder()
-                .receivename(request.getReceivename())
-                .receivephone(request.getReceivephone())
-                .province(request.getProvince())
-                .district(request.getDistrict())
-                .ward(request.getWard())
-                .detailaddress(request.getDetailaddress())
-                .user(user)
-                .build();
+    // Đăng kí thêm cả địa chỉ
+    public AddressResponse createWhenRegister(AddressRequest request, UserEntity user){
+        AddressEntity address = addressMapper.toEntity(request);
+        address.setUser(user);
         addressRepository.save(address);
-        return address.getId();
+        return addressMapper.toResponse(address);
     }
 
     // Khi đã đăng nhập và người dùng muốn thêm địa chỉ
-    public Long create(AddressRequest request){
+    public AddressResponse create(AddressRequest request){
         UserEntity user = authenticationFacade.getCurrentUser();
-        AddressEntity address = AddressEntity.builder()
-                .receivename(request.getReceivename())
-                .receivephone(request.getReceivephone())
-                .province(request.getProvince())
-                .district(request.getDistrict())
-                .ward(request.getWard())
-                .detailaddress(request.getDetailaddress())
-                .user(user)
-                .build();
+        AddressEntity address = addressMapper.toEntity(request);
+        address.setUser(user);
         addressRepository.save(address);
-        return address.getId();
+        return addressMapper.toResponse(address);
     }
 
     public void update(Long id, AddressRequest request){
         UserEntity user = authenticationFacade.getCurrentUser();
         AddressEntity address = addressRepository.findByIdAndUserId(id, user.getId())
                 .orElseThrow(() -> new AddressNotFoundException("Address not found with id: " + id));
-        address.setReceivename(request.getReceivename());
-        address.setReceivephone(request.getReceivephone());
-        address.setProvince(request.getProvince());
-        address.setWard(request.getWard());
-        address.setDistrict(request.getDistrict());
-        address.setDetailaddress(request.getDetailaddress());
+        addressMapper.updateEntity(request, address);
         addressRepository.save(address);
     }
 

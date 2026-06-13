@@ -1,7 +1,7 @@
 package com.example.drinkgo.product.service;
 
 import com.example.drinkgo.category.entity.CategoryEntity;
-import com.example.drinkgo.category.exception.CategoryHasProductsException;
+import com.example.drinkgo.category.exception.CategoryNotFoundException;
 import com.example.drinkgo.category.repository.CategoryRepository;
 import com.example.drinkgo.product.dto.request.ProductRequest;
 import com.example.drinkgo.product.dto.response.ProductDetailResponse;
@@ -40,8 +40,11 @@ public class ProductService {
     }
 
     public ProductResponse createProduct(ProductRequest request){
+        if(request.getCategoryId() == null){
+            throw new IllegalArgumentException("Category Id is required");
+        }
         if(!categoryRepository.existsById(request.getCategoryId())){
-            throw new CategoryHasProductsException("Category does not exists");
+            throw new CategoryNotFoundException("Category does not exists");
         }
         ProductEntity product = productMapper.toEntity(request);
         productRepository.save(product);

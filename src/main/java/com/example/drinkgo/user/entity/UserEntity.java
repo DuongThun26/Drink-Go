@@ -47,7 +47,7 @@ public class UserEntity extends BaseEntity implements UserDetails{
     @Column(name = "currentpoint")
     private Integer currentPoint;
 
-    @ManyToMany(fetch = FetchType.EAGER)
+    @ManyToMany
     @JoinTable(
         name = "userrole",
         joinColumns = @JoinColumn(name = "user_id"),

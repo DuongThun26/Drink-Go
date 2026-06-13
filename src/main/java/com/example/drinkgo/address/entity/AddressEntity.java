@@ -42,6 +42,6 @@ public class AddressEntity extends BaseEntity {
     private String detailaddress;
 
     @ManyToOne
-    @JoinColumn(name = "user_id", nullable = false)
+    @JoinColumn(name = "user_id", nullable = true)
     private UserEntity user;
 }

@@ -33,15 +33,13 @@ public class UserService {
                 .username(request.getUsername())
                 .password(encodedPassword)
                 .build();
-
-        // Assign default role USER (create if missing)
         RoleEntity userRole = roleRepository.findByCode("USER")
                 .orElseGet(() -> roleRepository.save(RoleEntity.builder().code("USER").name("User").build()));
         userEntity.setRoles(List.of(userRole));
 
         userRepository.save(userEntity);
         if(address != null){
-            addressService.createWhenRegister(address);
+            addressService.createWhenRegister(address, userEntity);
         }
         return UserResponse.builder()
                 .id(userEntity.getId())
