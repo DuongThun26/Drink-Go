@@ -56,8 +56,9 @@
   + User (id, username, password, email, phone, fullname, status, currentpoint)
   Status = [ ACTIVE, INACTIVE, LOCKED]
   + Role (id, code, name)
-  + Product (id, name, images, description, producttype, category_id)
+  + Product (id, name, images, description, producttype, status, category_id)
   ProductType = [ MADE_TO_ORDER, READY_MADE]
+  ProductStatus = [ ACTIVE, INACTIVE, OUT-OF-STOCK]
   + Productvariant (id, product_id, sizename, price)
   + Topping (id, name, price, status)
    Status = [ AVAILABLE, UNAVAILABLE]
@@ -66,12 +67,13 @@
   + CartItem (id, cart_id, product_variant_id, quantity)
   + Category (id, name, code, description, status)
    Status = [ ACTIVE, INACTIVE]
-  + Inventory (id, product_variant_id, quantity, productdate)
+  + Inventory (id, product_variant_id, quantity)
+  + StoreSetting( id, openttime, closetime, isopen)
   + Order (id, code, totalamount, discountamount, finalamount, status, paymentmethod, note, receivename, receivephone, province, district, ward, detailaddress, user_id)
   Status (PENDING, CONFIRMED, PREPARING, DELIVERING, COMPLETED, CANCELLED)
   + OrderDetail (id, order_id, quantity, product_variant_id, unitprice, totalprice, productname, sizename)
   + OrderDetailTopping (id, order_detail_id, toppingname, toppingprice)
-  + Promotion (id, name, code, promotionstart, promotionend, discountpercent, quantity, status, promotiontype)
+  + Promotion (id, name, code, promotionstart, promotionend, discountpercent, quantity, minorderamount, maxdiscountamount, status, promotiontype)
     PromotionType = [ PRODUCT, ORDER, VOUCHER]
     Status = [ ACTIVE, INACTIVE, EXPIRED]
   + Payment (id, code, method, status, order_id, amount, transaction_id)
@@ -112,7 +114,7 @@
   + PUT /admin/toppings/{id} → Cập nhật topping (require ADMIN)
   + DELETE /admin/toppings/{id} → Xóa topping (require ADMIN)
 - Cart API:
-  + GET /cart → Lấy thông tin giỏ hàng của khách hàng (require auth)
+  + GET /cart → Lấy thông tin giỏ hàng của khách hàng 
   + POST /cart/items → Thêm sản phẩm vào giỏ hàng (require auth)
   + PUT /cart/items/{id} → Cập nhật số lượng sản phẩm trong giỏ hàng (require auth)
   + DELETE /cart/items/{id} → Xóa sản phẩm khỏi giỏ hàng (require auth)
@@ -125,10 +127,11 @@
   + PUT /admin/orders/{id}/status → Cập nhật trạng thái đơn hàng (require ADMIN)
   + DELETE /orders/{id} → Hủy đơn hàng (require auth)
 - Address API:
-  + GET /addresses -> Lấy dạnh sách địa chircuar khách hàng
-  + POST /addresses -> Thêm địa chỉ mới của khách hàng
-  + PUT /addresses -> Cập nhật địa chỉ khách hàng
-  + DELETE /addresses -> Xóa địa chỉ khách hàng
+  + GET /users/me/addresses -> Lấy dạnh sách địa chỉ khách hàng
+  + POST /users/me/addresses -> Thêm địa chỉ mới của khách hàng
+  + POST /addresses/guest -> Thêm địa chỉ guest
+  + PUT /users/me/addresses/{id} -> Cập nhật địa chỉ khách hàng
+  + DELETE /users/me/addresses/{id} -> Xóa địa chỉ khách hàng
 - Admin Order API:
   + GET /admin/orders -> Lấy danh sách tất cả các đơn hàng (require ADMIN)
   + GET /admin/orders/{id} -> Lấy thông tin chi tiết đơn hàng (require ADMIN)
@@ -150,6 +153,8 @@
    + POST /guest/payments/bank-transfer -> Thanh toán qua chuyển khoản cho khách không đăng nhập
    + POST /payments/bank-tranfer -> Thanh toán qua chuyển khoản (require auth)
    + GET /payments/{id} -> Lấy thông tin chi tiết thanh toán (require auth)
+   + POST /payments/vnpay/callback
+   + POST /payments/momo/callback
 - Review API:
   + POST /products/{productId}/reviews -> Thêm đánh giá cho sản phẩm (require auth)
   + GET /products/{productId}/reviews -> Lấy danh sách đánh giá của sản phẩm
@@ -164,6 +169,9 @@
   + POST /admin/inventory -> Thêm mới tồn kho (require ADMIN)
   + PUT /admin/inventory/{id} -> Cập nhật tồn kho (require ADMIN)
   + DELETE /admin/inventory/{id} -> Xóa tồn kho (require ADMIN)
+- StoreSetting API:
+  + GET /store-settings -> Lấy giờ bán hàng
+  + PUT /admin/store-settings -> update giờ bán hàng
 - Dashboard API:
   + GET /admin/dashboard -> Lấy thông tin thống kê doanh thu, số lượng đơn hàng, sản phẩm bán chạy (require ADMIN)
   + GET /admin/dashboard/today -> Lấy thông tin thống kê doanh thu, số lượng đơn hàng, sản phẩm bán chạy trong ngày (require ADMIN)
