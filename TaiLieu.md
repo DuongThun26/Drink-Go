@@ -67,7 +67,9 @@
   + CartItem (id, cart_id, product_variant_id, quantity)
   + Category (id, name, code, description, status)
    Status = [ ACTIVE, INACTIVE]
-  + StoreSetting( id, openttime, closetime, isopen)
+  + StoreSetting( id, isopen)
+  + StoreSchedule( id, dayofweek, opentime, closetime)
+   DayOfWeek = [MONDAY, TUESDAY, WEDNESDAY, THURSDAY, FRIDAY, SATURDAY, SUNDAY]
   + Order (id, code, totalamount, discountamount, finalamount, status, paymentmethod, note, receivename, receivephone, province, district, ward, detailaddress, user_id)
   Status (PENDING, CONFIRMED, PREPARING, DELIVERING, COMPLETED, CANCELLED)
   + OrderDetail (id, order_id, quantity, product_variant_id, unitprice, totalprice, productname, sizename)
@@ -164,8 +166,13 @@
   + GET /admin/customers/{id} -> Lấy thông tin chi tiết khách hàng
   + GET /admin/customers/{id}/orders -> Lấy danh sách đơn hàng của khách hàng (require ADMIN)
 - StoreSetting API:
-  + GET /store-settings -> Lấy giờ bán hàng
-  + PUT /admin/store-settings -> update giờ bán hàng
+  + GET /store-settings -> Lấy trạng thái bán hàng (mở cửa hay đóng cửa)
+  + PUT /admin/store-settings -> update trang thái bán hàng
+- StoreSchedule API:
+  + GET /store-schedules -> Lấy giờ bán hàng
+  + POST /admin/store-schedules -> Tạo giờ bán hàng
+  + PUT /admin/store-schedules/{id} -> Cập nhật giờ bán hàng
+  + DELETE /admin/store-schedules/{id} -> Xóa 
 - Dashboard API:
   + GET /admin/dashboard -> Lấy thông tin thống kê doanh thu, số lượng đơn hàng, sản phẩm bán chạy (require ADMIN)
   + GET /admin/dashboard/today -> Lấy thông tin thống kê doanh thu, số lượng đơn hàng, sản phẩm bán chạy trong ngày (require ADMIN)
@@ -214,9 +221,10 @@
     * CRUD Promotion
     * Validate Voucher
 - Ngày 14: StoreSetting 
-  + API:
+  + StoreSetting API:
     * GET /store-settings
     * PUT /admin/store-settings
+  + CRUD StoreSchedule
   + Kiểm tra:
     * READY_MADE
     * còn hàng hay không.
