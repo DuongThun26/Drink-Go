@@ -53,7 +53,10 @@ public class SecurityConfiguration {
                         .requestMatchers(listPermit).permitAll()
                         .requestMatchers(HttpMethod.POST, "/users/me/addresses").permitAll()
                         .requestMatchers("/address/guest/**").permitAll()
-                        .requestMatchers(HttpMethod.GET, "/categories", "/categories/{id}", "/products", "/products/{id}", "/toppings", "/products/{productId}/variants", "/promotions", "/promotion/{id}").permitAll()
+                        .requestMatchers(HttpMethod.GET, "/categories", "/categories/{id}", "/products",
+                                "/products/{id}", "/toppings", "/products/{productId}/variants", "/promotions", "/promotion/{id}",
+                                "/store-settings", "/store-schedules"
+                        ).permitAll()
                         .requestMatchers(HttpMethod.POST, "/promotions/validate" ).permitAll()
                         .requestMatchers("/admin/**").hasRole("ADMIN")
                         .anyRequest().authenticated()

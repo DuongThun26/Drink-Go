@@ -2,13 +2,12 @@ package com.example.drinkgo.authentication.service;
 
 import com.example.drinkgo.authentication.dto.JWTInfor;
 import com.example.drinkgo.authentication.dto.TokenPayload;
-import com.example.drinkgo.authentication.dto.response.LoginResponse;
 import com.example.drinkgo.authentication.entity.AccessTokenBlacklist;
 import com.example.drinkgo.authentication.entity.RefreshTokenWhitelist;
 import com.example.drinkgo.authentication.repository.AccessTokenBlacklistRepository;
 import com.example.drinkgo.authentication.repository.RefreshTokenWhitelistRepository;
-import com.example.drinkgo.user.entity.UserEntity;
 import com.example.drinkgo.user.entity.RoleEntity;
+import com.example.drinkgo.user.entity.UserEntity;
 import com.nimbusds.jose.*;
 import com.nimbusds.jose.crypto.MACSigner;
 import com.nimbusds.jose.crypto.MACVerifier;
@@ -43,7 +42,7 @@ public class JWTService {
         JWSHeader header = new JWSHeader(JWSAlgorithm.HS512);
         Date issueTime = new Date();
         String jwtId = UUID.randomUUID().toString();
-        Date expirationTime = Date.from(issueTime.toInstant().plus(15, ChronoUnit.MINUTES));
+        Date expirationTime = Date.from(issueTime.toInstant().plus(30, ChronoUnit.MINUTES));
         // include roles in token for authorization mapping later
         List<String> roles = user.getRoles() == null ? List.of() : user.getRoles().stream()
                 .map(RoleEntity::getCode)
