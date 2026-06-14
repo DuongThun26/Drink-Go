@@ -31,6 +31,9 @@ public class ProductVariantEntity extends BaseEntity {
     @Column(name = "price")
     private Long price;
 
+    @Column(name = "quantity")
+    private Long quantity;
+
     @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "product_id")
     private ProductEntity product;

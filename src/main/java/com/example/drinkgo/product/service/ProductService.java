@@ -29,7 +29,8 @@ public class ProductService {
     private final ProductVariantRepository productVariantRepository;
 
     public List<ProductResponse> getAllProducts(){
-        return productMapper.toListProduct(productRepository.findAll());
+        List<ProductEntity> product = productRepository.findAll();
+        return productMapper.toListProduct(product);
     }
 
     @Transactional(readOnly = true)

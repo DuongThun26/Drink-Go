@@ -67,7 +67,6 @@
   + CartItem (id, cart_id, product_variant_id, quantity)
   + Category (id, name, code, description, status)
    Status = [ ACTIVE, INACTIVE]
-  + Inventory (id, product_variant_id, quantity)
   + StoreSetting( id, openttime, closetime, isopen)
   + Order (id, code, totalamount, discountamount, finalamount, status, paymentmethod, note, receivename, receivephone, province, district, ward, detailaddress, user_id)
   Status (PENDING, CONFIRMED, PREPARING, DELIVERING, COMPLETED, CANCELLED)
@@ -164,11 +163,6 @@
   + GET /admin/customers -> Lấy danh sách khách hàng (require ADMIN)
   + GET /admin/customers/{id} -> Lấy thông tin chi tiết khách hàng
   + GET /admin/customers/{id}/orders -> Lấy danh sách đơn hàng của khách hàng (require ADMIN)
-- Inventory API:
-  + GET /admin/inventory -> Lấy danh sách tồn kho (require ADMIN)
-  + POST /admin/inventory -> Thêm mới tồn kho (require ADMIN)
-  + PUT /admin/inventory/{id} -> Cập nhật tồn kho (require ADMIN)
-  + DELETE /admin/inventory/{id} -> Xóa tồn kho (require ADMIN)
 - StoreSetting API:
   + GET /store-settings -> Lấy giờ bán hàng
   + PUT /admin/store-settings -> update giờ bán hàng
@@ -202,10 +196,11 @@
 - Ngày 10: User + Address
   + API:
     * GET /me
-    * GET /addresses
-    * POST /addresses
-    * PUT /addresses
-    * DELETE /addresses
+    * GET /user/me/addresses
+    * POST /user/me/addresses
+    * POST /addresses/guest
+    * PUT /user/me/addresses
+    * DELETE /user/me/addresses
 - Ngày 11: Category
   + API:
     * CRUD Category
@@ -218,9 +213,10 @@
   + API:
     * CRUD Promotion
     * Validate Voucher
-- Ngày 14: Inventory 
+- Ngày 14: StoreSetting 
   + API:
-    * CRUD Inventory
+    * GET /store-settings
+    * PUT /admin/store-settings
   + Kiểm tra:
     * READY_MADE
     * còn hàng hay không.

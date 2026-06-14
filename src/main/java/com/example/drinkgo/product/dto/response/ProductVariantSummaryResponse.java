@@ -10,4 +10,5 @@ import lombok.*;
 public class ProductVariantSummaryResponse {
     private String sizeName;
     private Long price;
+    private Long quantity;
 }

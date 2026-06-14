@@ -15,5 +15,5 @@ public class ProductResponse {
     private String name;
     private List<String> images;
     private ProductType productType;
-    private Long categoryId;
+    private String category;
 }
