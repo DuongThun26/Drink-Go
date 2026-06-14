@@ -17,5 +17,7 @@ public class ProductVariantRequest {
     @PositiveOrZero(message = "Price must be greater than or equal to 0")
     private Long price;
 
+    private Long quantity;
+
     private Long productId;
 }
