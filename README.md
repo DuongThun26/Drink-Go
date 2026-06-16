@@ -152,9 +152,9 @@ MySQL        Redis
 
 ### Sơ đồ ERD
 
-```markdown
+
 ![ERD](docs/erd.png)
-```
+
 
 ---
 
@@ -204,26 +204,44 @@ DELETE /api/v1/orders/{id}
 ### Clone source code
 
 ```bash
-git clone https://github.com/your-username/drinkgo.git
+git clone https://github.com/DuongThun26/Drink-Go.git
 ```
-### Cấu hình cơ sở dữ liệu
+## Cấu hình cơ sở dữ liệu
 
-Tạo database:
+### 1. Tạo cơ sở dữ liệu MySQL
 
 ```sql
 CREATE DATABASE drinkgo;
 ```
 
-Cập nhật thông tin trong file:
+### 2. Cấu hình biến môi trường
 
-```properties
-application.properties
+Trước khi chạy ứng dụng, hãy cấu hình các biến môi trường sau:
+
+| Biến môi trường | Mô tả                                  |
+| --------------- | -------------------------------------- |
+| DB_PASSWORD     | Mật khẩu MySQL                         |
+| SECRETKEY       | Khóa bí mật dùng để ký và xác thực JWT |
+
+Ví dụ:
+
+```bash
+DB_PASSWORD=your_mysql_password
+SECRETKEY=your_secret_key
 ```
 
-```properties
-spring.datasource.url=jdbc:mysql://localhost:3306/drinkgo
-spring.datasource.username=root
-spring.datasource.password=your_password
+### 3. Cấu hình ứng dụng
+
+Ứng dụng sử dụng file `application.yml` với cấu hình như sau:
+
+```yaml
+spring:
+  datasource:
+    url: jdbc:mysql://localhost:3306/drinkgo
+    username: root
+    password: ${DB_PASSWORD}
+
+secretkey: ${SECRETKEY}
 ```
 
 ### Chạy Backend
