@@ -3,6 +3,7 @@ package com.example.drinkgo.product.entity;
 import com.example.drinkgo.category.entity.CategoryEntity;
 import com.example.drinkgo.common.BaseEntity;
 import com.example.drinkgo.product.enums.ProductType;
+import com.example.drinkgo.review.entity.ReviewEntity;
 import jakarta.persistence.*;
 import lombok.*;
 
@@ -41,4 +42,7 @@ public class ProductEntity extends BaseEntity {
 
     @ManyToMany(mappedBy = "products", fetch = FetchType.LAZY)
     private List<ToppingEntity> toppings;
+
+    @OneToMany(mappedBy = "product")
+    private List<ReviewEntity> reviews;
 }

@@ -2,6 +2,7 @@ package com.example.drinkgo.user.entity;
 
 import com.example.drinkgo.address.entity.AddressEntity;
 import com.example.drinkgo.common.BaseEntity;
+import com.example.drinkgo.review.entity.ReviewEntity;
 import com.example.drinkgo.user.enums.UserStatus;
 import jakarta.persistence.*;
 import lombok.*;
@@ -58,6 +59,9 @@ public class UserEntity extends BaseEntity implements UserDetails{
     @OneToMany(fetch = FetchType.LAZY, mappedBy = "user")
     private List<AddressEntity> addresses;
 
+    @OneToMany(fetch = FetchType.LAZY, mappedBy = "user")
+    private List<ReviewEntity> reviews;
+
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {
         if(roles == null || roles.isEmpty()) {
@@ -86,4 +90,5 @@ public class UserEntity extends BaseEntity implements UserDetails{
     public boolean isEnabled() {
         return UserDetails.super.isEnabled();
     }
+
 }
