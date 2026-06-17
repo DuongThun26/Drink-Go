@@ -33,4 +33,5 @@ public class AuthenticationExceptionHandler {
         body.put("error", "Unauthorized");
         return new ResponseEntity<>(body, HttpStatus.UNAUTHORIZED);
     }
+
 }
