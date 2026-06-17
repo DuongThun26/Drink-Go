@@ -7,6 +7,8 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Map;
 
 @Service
@@ -14,13 +16,17 @@ import java.util.Map;
 public class CloudinaryService {
     private final Cloudinary cloudinary;
 
-    public String upload(MultipartFile file){
+    public List<String> upload(List<MultipartFile> files){
+        List<String> url = new ArrayList<>();
         try{
-            Map<?, ?> result = cloudinary.uploader().upload(file.getBytes(), ObjectUtils.emptyMap());
-            System.out.println(result);
-            return result.get("secure_url").toString();
+            for(MultipartFile file : files){
+                Map<?, ?> result = cloudinary.uploader().upload(file.getBytes(), ObjectUtils.emptyMap());
+                System.out.println(result);
+                url.add(result.get("secure_url").toString());
+            }
         }catch(IOException ex){
             throw new RuntimeException("Upload file failed");
         }
+        return url;
     }
 }

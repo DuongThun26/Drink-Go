@@ -8,6 +8,8 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
 
+import java.util.List;
+
 @RestController
 @RequestMapping("/cloudinary")
 @RequiredArgsConstructor
@@ -15,7 +17,7 @@ public class CloudinaryController {
     private final CloudinaryService cloudinaryService;
 
     @PostMapping(value = "/upload")
-    public String upload(@RequestParam("file") MultipartFile file) {
-        return cloudinaryService.upload(file);
+    public List<String> upload(@RequestParam("files") List<MultipartFile> files) {
+        return cloudinaryService.upload(files);
     }
 }
