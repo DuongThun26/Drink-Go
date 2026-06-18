@@ -41,7 +41,9 @@ public class PromotionEntity {
     @Column(name = "quantity")
     private Long quantity;
 
+    @Enumerated(EnumType.STRING)
     private PromotionStatus status;
 
+    @Enumerated(EnumType.STRING)
     private PromotionType promotionType;
 }

@@ -31,7 +31,7 @@ public class SecurityConfiguration {
     private final UserDetailServiceCustom userDetailServiceCustom;
 
     private String[] listPermit = {"/auth/register", "/auth/login", "/auth/refresh", "/auth/reset", "/auth/forgot",
-            "/users"
+            "/users", "/cart", "/cart/items"
     };
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {

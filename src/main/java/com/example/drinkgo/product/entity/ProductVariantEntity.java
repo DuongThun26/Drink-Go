@@ -1,5 +1,6 @@
 package com.example.drinkgo.product.entity;
 
+import com.example.drinkgo.cart.entity.CartItemEntity;
 import com.example.drinkgo.common.BaseEntity;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotBlank;
@@ -7,6 +8,8 @@ import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.PositiveOrZero;
 import jakarta.validation.constraints.Size;
 import lombok.*;
+
+import java.util.List;
 
 @Entity
 @Getter
@@ -37,5 +40,8 @@ public class ProductVariantEntity extends BaseEntity {
     @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "product_id")
     private ProductEntity product;
+
+    @OneToMany(mappedBy = "productVariant")
+    private List<CartItemEntity> cartItems;
 
 }

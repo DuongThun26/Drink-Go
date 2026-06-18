@@ -27,8 +27,8 @@ public class AuthenticationController {
     private final UserService userService;
 
     @PostMapping(value = "/auth/login")
-    public LoginResponse login(@Valid @RequestBody LoginRequest request){
-        return authenticationService.login(request);
+    public LoginResponse login(@Valid @RequestBody LoginRequest request, @RequestHeader(value = "Cart-Guest", required = false) String cartGuest){
+        return authenticationService.login(request, cartGuest);
     }
 
     @PostMapping(value = "/auth/register")
