@@ -6,6 +6,7 @@ import com.example.drinkgo.user.entity.UserEntity;
 import jakarta.persistence.*;
 import lombok.*;
 
+import java.util.ArrayList;
 import java.util.List;
 
 @Entity
@@ -32,5 +33,5 @@ public class CartEntity extends BaseEntity {
     private UserEntity user;
 
     @OneToMany(fetch = FetchType.LAZY, mappedBy = "cart")
-    private List<CartItemEntity> cartItems;
+    private List<CartItemEntity> cartItems = new ArrayList<>();
 }

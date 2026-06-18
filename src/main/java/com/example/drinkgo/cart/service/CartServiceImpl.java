@@ -85,6 +85,31 @@ public class CartServiceImpl implements CartService {
         cartItemRepository.deleteAll(cartEntity.getCartItems());
     }
 
+    @Override
+    public void mergeCarts(String cartGuest, Long userId) {
+        Optional<CartEntity> guestCartOpt = cartRepository.findBySessionId(cartGuest);
+        if (guestCartOpt.isPresent()) {
+            CartEntity guestCart = guestCartOpt.get();
+            CartEntity userCart = getCartEntity(null, userId);
+
+            for (CartItemEntity guestItem : guestCart.getCartItems()) {
+                Optional<CartItemEntity> existingItem = userCart.getCartItems().stream()
+                        .filter(cartItem -> cartItem.getProductVariant().getId().equals(guestItem.getProductVariant().getId()))
+                        .findFirst();
+
+                if (existingItem.isPresent()) {
+                    CartItemEntity userItem = existingItem.get();
+                    userItem.setQuantity(userItem.getQuantity() + guestItem.getQuantity());
+                    cartItemRepository.save(userItem);
+                } else {
+                    guestItem.setCart(userCart);
+                    cartItemRepository.save(guestItem);
+                }
+            }
+            cartRepository.delete(guestCart);
+        }
+    }
+
     private CartEntity getCartEntity(String cartGuest, Long userId) {
         if (userId != null) {
             Optional<UserEntity> user = userRepository.findById(userId);
@@ -119,4 +144,5 @@ public class CartServiceImpl implements CartService {
         cartItemRequest.setQuantity(cartItemEntity.getQuantity().intValue());
         return cartItemRequest;
     }
+
 }

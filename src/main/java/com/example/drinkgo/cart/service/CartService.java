@@ -9,4 +9,5 @@ public interface CartService {
     CartResponse updateCartItem(String cartGuest, Long userId, Long id, CartItemRequest item);
     void deleteCartItem(String cartGuest, Long userId, Long id);
     void clearCart(String cartGuest, Long userId);
+    void mergeCarts(String cartGuest, Long userId);
 }

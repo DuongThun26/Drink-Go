@@ -6,12 +6,13 @@ import com.example.drinkgo.authentication.dto.request.*;
 import com.example.drinkgo.authentication.dto.response.ForgotPasswordResponse;
 import com.example.drinkgo.authentication.dto.response.LoginResponse;
 import com.example.drinkgo.authentication.entity.AccessTokenBlacklist;
-import com.example.drinkgo.authentication.entity.RefreshTokenWhitelist;
 import com.example.drinkgo.authentication.entity.PasswordResetToken;
+import com.example.drinkgo.authentication.entity.RefreshTokenWhitelist;
 import com.example.drinkgo.authentication.repository.AccessTokenBlacklistRepository;
-import com.example.drinkgo.authentication.repository.RefreshTokenWhitelistRepository;
 import com.example.drinkgo.authentication.repository.PasswordResetTokenRepository;
+import com.example.drinkgo.authentication.repository.RefreshTokenWhitelistRepository;
 import com.example.drinkgo.authentication.security.AuthenticationFacade;
+import com.example.drinkgo.cart.service.CartService;
 import com.example.drinkgo.user.entity.UserEntity;
 import com.example.drinkgo.user.repository.UserRepository;
 import com.nimbusds.jose.JOSEException;
@@ -20,7 +21,6 @@ import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
-import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
@@ -40,11 +40,15 @@ public class AuthenticationService {
     private final PasswordEncoder passwordEncoder;
     private final PasswordResetTokenRepository passwordResetTokenRepository;
     private final AuthenticationFacade authenticationFacade;
+    private final CartService cartService;
 
-    public LoginResponse login(LoginRequest request){
+    public LoginResponse login(LoginRequest request, String cartGuest){
         UsernamePasswordAuthenticationToken authenticationToken = new UsernamePasswordAuthenticationToken(request.getUsername(), request.getPassword());
         Authentication authenticate = authenticationManager.authenticate(authenticationToken);
         UserEntity user = (UserEntity) authenticate.getPrincipal();
+        if (cartGuest != null) {
+            cartService.mergeCarts(cartGuest, user.getId());
+        }
         return issueTokens(user);
     }
     public LoginResponse refresh(RefreshRequest request) throws ParseException, JOSEException {
