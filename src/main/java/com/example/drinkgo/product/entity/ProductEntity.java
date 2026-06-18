@@ -30,7 +30,7 @@ public class ProductEntity extends BaseEntity {
     @Column(name = "description")
     private String description;
 
-    @Column(name = "producttype")
+    @Enumerated(EnumType.STRING)
     private ProductType productType;
 
     @ManyToOne(fetch = FetchType.EAGER)

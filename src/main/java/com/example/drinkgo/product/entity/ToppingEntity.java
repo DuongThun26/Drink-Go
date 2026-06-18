@@ -1,5 +1,6 @@
 package com.example.drinkgo.product.entity;
 
+import com.example.drinkgo.cart.entity.CartItemEntity;
 import com.example.drinkgo.common.BaseEntity;
 import com.example.drinkgo.product.enums.ToppingStatus;
 import jakarta.persistence.*;
@@ -32,7 +33,7 @@ public class ToppingEntity extends BaseEntity {
     private Long price;
 
     @NotNull(message = "Topping status must not be null")
-    @Column(name = "status")
+    @Enumerated(EnumType.STRING)
     private ToppingStatus status;
 
     @ManyToMany(fetch = FetchType.LAZY)
@@ -40,4 +41,7 @@ public class ToppingEntity extends BaseEntity {
         joinColumns = @JoinColumn(name = "topping_id"),
         inverseJoinColumns = @JoinColumn(name = "product_id"))
     private List<ProductEntity> products;
+
+    @ManyToMany(mappedBy = "toppings", fetch = FetchType.LAZY)
+    private List<CartItemEntity> cartItems;
 }
