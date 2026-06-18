@@ -130,7 +130,7 @@ MySQL        Redis
   Status = [ AVAILABLE, UNAVAILABLE]
 + Cart (id, user_id, sesson_id, status)
   Status = [ ACTIVE, CHECKED_OUT, ABANDONED]
-+ CartItem (id, cart_id, product_variant_id, quantity)
++ CartItem (id, cart_id, product_variant_id, quantity, unitprice)
 + Category (id, name, code, description, status)
   Status = [ ACTIVE, INACTIVE]
 + StoreSetting( id, isopen)

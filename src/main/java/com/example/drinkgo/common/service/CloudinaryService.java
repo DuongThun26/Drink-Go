@@ -21,7 +21,6 @@ public class CloudinaryService {
         try{
             for(MultipartFile file : files){
                 Map<?, ?> result = cloudinary.uploader().upload(file.getBytes(), ObjectUtils.emptyMap());
-                System.out.println(result);
                 url.add(result.get("secure_url").toString());
             }
         }catch(IOException ex){

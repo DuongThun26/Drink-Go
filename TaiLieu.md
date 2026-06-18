@@ -64,7 +64,7 @@
    Status = [ AVAILABLE, UNAVAILABLE]
   + Cart (id, user_id, sesson_id, status)
    Status = [ ACTIVE, CHECKED_OUT, ABANDONED]
-  + CartItem (id, cart_id, product_variant_id, quantity)
+  + CartItem (id, cart_id, product_variant_id, quantity, unitprice)
   + Category (id, name, code, description, status)
    Status = [ ACTIVE, INACTIVE]
   + StoreSetting( id, isopen)
@@ -116,10 +116,12 @@
   + DELETE /admin/toppings/{id} → Xóa topping (require ADMIN)
 - Cart API:
   + GET /cart → Lấy thông tin giỏ hàng của khách hàng 
-  + POST /cart/items → Thêm sản phẩm vào giỏ hàng (require auth)
-  + PUT /cart/items/{id} → Cập nhật số lượng sản phẩm trong giỏ hàng (require auth)
-  + DELETE /cart/items/{id} → Xóa sản phẩm khỏi giỏ hàng (require auth)
-  + DELETE /cart/items → Xóa tất cả sản phẩm khỏi giỏ hàng (require auth)
+  + POST /cart/items → Thêm sản phẩm vào giỏ hàng 
+  + PUT /cart/items/{id} → Cập nhật số lượng sản phẩm trong giỏ hàng 
+  + DELETE /cart/items/{id} → Xóa sản phẩm khỏi giỏ hàng 
+  + DELETE /cart/items → Xóa tất cả sản phẩm khỏi giỏ hàng
+    Có JWT -> user cart
+    Không có JWT -> guest cart qua session_id/cookie
 - Order API:
   + POST /orders → Tạo đơn hàng (require auth)
   + POST /guest/orders -> Tạo đơn hàng cho khách không  
