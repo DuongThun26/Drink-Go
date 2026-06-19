@@ -2,6 +2,7 @@ package com.example.drinkgo.product.entity;
 
 import com.example.drinkgo.cart.entity.CartItemEntity;
 import com.example.drinkgo.common.BaseEntity;
+import com.example.drinkgo.order.entity.OrderDetailToppingEntity;
 import com.example.drinkgo.product.enums.ToppingStatus;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotBlank;
@@ -44,4 +45,7 @@ public class ToppingEntity extends BaseEntity {
 
     @ManyToMany(mappedBy = "toppings", fetch = FetchType.LAZY)
     private List<CartItemEntity> cartItems;
+
+    @OneToMany(mappedBy = "topping", fetch = FetchType.LAZY)
+    private List<OrderDetailToppingEntity> orderDetailToppings;
 }
