@@ -2,6 +2,7 @@ package com.example.drinkgo.order.entity;
 
 import com.example.drinkgo.common.BaseEntity;
 import com.example.drinkgo.order.enums.OrderStatus;
+import com.example.drinkgo.order.enums.PaymentMethod;
 import com.example.drinkgo.user.entity.UserEntity;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotBlank;
@@ -33,8 +34,8 @@ public class OrderEntity extends BaseEntity {
     @Column(name = "finalamount")
     private Long finalAmount;
 
-    @Column(name = "paymentmethod")
-    private String paymentMethod;
+    @Enumerated(EnumType.STRING)
+    private PaymentMethod paymentMethod;
 
     @Column(name = "note")
     private String note;

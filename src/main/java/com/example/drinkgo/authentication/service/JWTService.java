@@ -42,7 +42,7 @@ public class JWTService {
         JWSHeader header = new JWSHeader(JWSAlgorithm.HS512);
         Date issueTime = new Date();
         String jwtId = UUID.randomUUID().toString();
-        Date expirationTime = Date.from(issueTime.toInstant().plus(30, ChronoUnit.MINUTES));
+        Date expirationTime = Date.from(issueTime.toInstant().plus(1, ChronoUnit.DAYS));
         // include roles in token for authorization mapping later
         List<String> roles = user.getRoles() == null ? List.of() : user.getRoles().stream()
                 .map(RoleEntity::getCode)

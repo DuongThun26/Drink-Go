@@ -9,6 +9,7 @@ import com.example.drinkgo.cart.repository.CartRepository;
 import com.example.drinkgo.product.entity.ProductVariantEntity;
 import com.example.drinkgo.product.repository.ProductVariantRepository;
 import com.example.drinkgo.user.entity.UserEntity;
+import com.example.drinkgo.user.exception.UserNotFoundException;
 import com.example.drinkgo.user.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -112,20 +113,25 @@ public class CartServiceImpl implements CartService {
 
     private CartEntity getCartEntity(String cartGuest, Long userId) {
         if (userId != null) {
-            Optional<UserEntity> user = userRepository.findById(userId);
-            if (user.isPresent()) {
-                return cartRepository.findByUserId(userId).orElseGet(() -> {
-                    CartEntity newCart = new CartEntity();
-                    newCart.setUser(user.get());
-                    return cartRepository.save(newCart);
-                });
-            }
+            UserEntity user = userRepository.findById(userId)
+                    .orElseThrow(() -> new UserNotFoundException("User with ID " + userId + " not found."));
+
+            return cartRepository.findByUserId(userId).orElseGet(() -> {
+                CartEntity newCart = new CartEntity();
+                newCart.setUser(user);
+                return cartRepository.save(newCart);
+            });
         }
-        return cartRepository.findBySessionId(cartGuest).orElseGet(() -> {
-            CartEntity newCart = new CartEntity();
-            newCart.setSessionId(cartGuest);
-            return cartRepository.save(newCart);
-        });
+
+        if (cartGuest != null && !cartGuest.isEmpty()) {
+            return cartRepository.findBySessionId(cartGuest).orElseGet(() -> {
+                CartEntity newCart = new CartEntity();
+                newCart.setSessionId(cartGuest);
+                return cartRepository.save(newCart);
+            });
+        }
+
+        throw new IllegalArgumentException("Cannot get cart. Both userId and cartGuest are null.");
     }
 
     private CartResponse mapToCartDto(CartEntity cartEntity) {
