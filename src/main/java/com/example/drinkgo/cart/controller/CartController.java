@@ -2,15 +2,14 @@ package com.example.drinkgo.cart.controller;
 
 import com.example.drinkgo.authentication.security.AuthenticationFacade;
 import com.example.drinkgo.cart.dto.request.CartItemRequest;
+import com.example.drinkgo.cart.dto.response.CartResponse;
 import com.example.drinkgo.cart.service.CartService;
 import com.example.drinkgo.user.entity.UserEntity;
-import jakarta.servlet.http.Cookie;
+import com.example.drinkgo.util.CookieService;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-
-import java.util.UUID;
 
 @RestController
 @RequestMapping("/cart")
@@ -19,6 +18,7 @@ public class CartController {
 
     private final CartService cartService;
     private final AuthenticationFacade authenticationFacade;
+    private final CookieService cookieService;
 
     private Long getUserId() {
         try {
@@ -30,53 +30,57 @@ public class CartController {
     }
 
     @GetMapping
-    public ResponseEntity<?> getCart(@CookieValue(name = "cart_guest", required = false) String cartGuest,
-                                     HttpServletResponse response) {
+    public ResponseEntity<CartResponse> getCart(@CookieValue(name = "cart_guest", required = false) String cartGuest,
+                                                HttpServletResponse response) {
         Long userId = getUserId();
-        if (userId == null && cartGuest == null) {
-            cartGuest = UUID.randomUUID().toString();
-            Cookie cookie = new Cookie("cart_guest", cartGuest);
-            cookie.setPath("/");
-            cookie.setMaxAge(60 * 60 * 24 * 30); // 30 days
-            response.addCookie(cookie);
+        if (userId == null) {
+            cartGuest = cookieService.getOrCreateCartGuest(cartGuest, response);
         }
         return ResponseEntity.ok(cartService.getCart(cartGuest, userId));
     }
 
     @PostMapping("/items")
-    public ResponseEntity<?> addItemToCart(@CookieValue(name = "cart_guest", required = false) String cartGuest,
-                                           @RequestBody CartItemRequest item,
-                                           HttpServletResponse response) {
+    public ResponseEntity<CartResponse> addItemToCart(@CookieValue(name = "cart_guest", required = false) String cartGuest,
+                                                      @RequestBody CartItemRequest item,
+                                                      HttpServletResponse response) {
         Long userId = getUserId();
-        if (userId == null && cartGuest == null) {
-            cartGuest = UUID.randomUUID().toString();
-            Cookie cookie = new Cookie("cart_guest", cartGuest);
-            cookie.setPath("/");
-            cookie.setMaxAge(60 * 60 * 24 * 30); // 30 days
-            response.addCookie(cookie);
+        if (userId == null) {
+            cartGuest = cookieService.getOrCreateCartGuest(cartGuest, response);
         }
         return ResponseEntity.ok(cartService.addItemToCart(cartGuest, userId, item));
     }
 
     @PutMapping("/items/{id}")
-    public ResponseEntity<?> updateCartItem(@CookieValue(name = "cart_guest", required = false) String cartGuest,
-                                            @PathVariable Long id,
-                                            @RequestBody CartItemRequest item) {
+    public ResponseEntity<CartResponse> updateCartItem(@CookieValue(name = "cart_guest", required = false) String cartGuest,
+                                                       @PathVariable Long id,
+                                                       @RequestBody CartItemRequest item,
+                                                       HttpServletResponse response) {
         Long userId = getUserId();
+        if (userId == null) {
+            cartGuest = cookieService.getOrCreateCartGuest(cartGuest, response);
+        }
         return ResponseEntity.ok(cartService.updateCartItem(cartGuest, userId, id, item));
     }
 
     @DeleteMapping("/items/{id}")
-    public ResponseEntity<?> deleteCartItem(@CookieValue(name = "cart_guest", required = false) String cartGuest,
-                                            @PathVariable Long id) {
+    public ResponseEntity<Void> deleteCartItem(@CookieValue(name = "cart_guest", required = false) String cartGuest,
+                                               @PathVariable Long id,
+                                               HttpServletResponse response) {
         Long userId = getUserId();
+        if (userId == null) {
+            cartGuest = cookieService.getOrCreateCartGuest(cartGuest, response);
+        }
         cartService.deleteCartItem(cartGuest, userId, id);
         return ResponseEntity.ok().build();
     }
 
     @DeleteMapping("/items")
-    public ResponseEntity<?> clearCart(@CookieValue(name = "cart_guest", required = false) String cartGuest) {
+    public ResponseEntity<Void> clearCart(@CookieValue(name = "cart_guest", required = false) String cartGuest,
+                                          HttpServletResponse response) {
         Long userId = getUserId();
+        if (userId == null) {
+            cartGuest = cookieService.getOrCreateCartGuest(cartGuest, response);
+        }
         cartService.clearCart(cartGuest, userId);
         return ResponseEntity.ok().build();
     }
