@@ -1,6 +1,7 @@
 package com.example.drinkgo.order.controller;
 
 import com.example.drinkgo.order.dto.request.OrderRequest;
+import com.example.drinkgo.order.dto.response.OrderDetailResponse;
 import com.example.drinkgo.order.dto.response.OrderResponse;
 import com.example.drinkgo.order.service.OrderService;
 import lombok.RequiredArgsConstructor;
@@ -18,6 +19,11 @@ public class OrderController {
     @GetMapping
     public Page<OrderResponse> getOrders(Pageable pageable) {
         return orderService.getOrders(pageable);
+    }
+
+    @GetMapping(value = "/{id}")
+    public OrderDetailResponse getOrder(@PathVariable Long id){
+        return orderService.getOrder(id);
     }
 
     @PostMapping

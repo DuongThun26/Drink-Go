@@ -6,10 +6,13 @@ import com.example.drinkgo.cart.entity.CartItemEntity;
 import com.example.drinkgo.cart.repository.CartItemRepository;
 import com.example.drinkgo.cart.repository.CartRepository;
 import com.example.drinkgo.order.dto.request.OrderRequest;
+import com.example.drinkgo.order.dto.response.OrderDetailResponse;
+import com.example.drinkgo.order.dto.response.OrderToppingResponse;
+import com.example.drinkgo.order.dto.response.OrderItemResponse;
 import com.example.drinkgo.order.dto.response.OrderResponse;
 import com.example.drinkgo.order.entity.OrderDetailEntity;
+import com.example.drinkgo.order.entity.OrderDetailToppingEntity;
 import com.example.drinkgo.order.entity.OrderEntity;
-import com.example.drinkgo.order.enums.OrderStatus;
 import com.example.drinkgo.order.exception.OrderNotFoundException;
 import com.example.drinkgo.order.mapper.OrderMapper;
 import com.example.drinkgo.order.repository.OrderDetailRepository;
@@ -22,8 +25,8 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.ArrayList;
 import java.util.List;
-import java.util.UUID;
 
 @Service
 @RequiredArgsConstructor
@@ -44,9 +47,38 @@ public class OrderServiceImpl implements OrderService{
     }
 
     @Override
-    public OrderResponse getOrder(Long id) {
-        OrderEntity orderEntity = orderRepository.findById(id).orElseThrow(() -> new OrderNotFoundException("Order not found"));
-        return orderMapper.toResponse(orderEntity);
+    public OrderDetailResponse getOrder(Long id) {
+        OrderEntity order = orderRepository.findById(id).orElseThrow(() -> new OrderNotFoundException("Order not found"));
+        OrderDetailResponse orderDetailResponse = OrderDetailResponse.builder()
+                .id(order.getId())
+                .code(order.getCode())
+                .orderStatus(order.getStatus())
+                .finalAmount(order.getFinalAmount())
+                .receiveName(order.getReceivename())
+                .build();
+        List<OrderDetailEntity> orderDetails = order.getOrderDetails();
+        List<OrderItemResponse> orderItems = new ArrayList<>();
+        for(OrderDetailEntity item : orderDetails){
+            List<OrderDetailToppingEntity> toppings = item.getOrderDetailToppings();
+            List<OrderToppingResponse> toppingResponses = new ArrayList<>();
+            for(OrderDetailToppingEntity topping : toppings){
+                toppingResponses.add(OrderToppingResponse.builder()
+                                .toppingName(topping.getToppingName())
+                                .toppingPrice(topping.getToppingPrice())
+                                .quantity(topping.getQuantity())
+                                .build());
+            }
+            OrderItemResponse orderItem = OrderItemResponse.builder()
+                    .productName(item.getProductName())
+                    .sizeName(item.getSizeName())
+                    .quantity(item.getQuantity())
+                    .unitPrice(item.getUnitPrice())
+                    .toppings(toppingResponses)
+                    .build();
+            orderItems.add(orderItem);
+        }
+        orderDetailResponse.setOrderItems(orderItems);
+        return orderDetailResponse;
     }
 
     @Override
@@ -57,9 +89,8 @@ public class OrderServiceImpl implements OrderService{
         try {
             user = authenticationFacade.getCurrentUser();
         } catch (Exception e) {
-            // User not authenticated, proceed as guest
-        }
 
+        }
         if (user != null) {
             cart = cartRepository.findByUserId(user.getId())
                     .orElseThrow(() -> new OrderNotFoundException("Cart not found for user"));
@@ -69,14 +100,11 @@ public class OrderServiceImpl implements OrderService{
         } else {
             throw new OrderNotFoundException("Cannot create order without a cart");
         }
-
         List<CartItemEntity> cartItems = cart.getCartItems();
         OrderEntity order = orderMapper.toEntity(orderRequest);
         if (user != null) {
             order.setUser(user);
         }
-        order.setCode(UUID.randomUUID().toString());
-        order.setStatus(OrderStatus.PENDING);
         orderRepository.save(order);
         Long totalAmount = 0L;
         for(CartItemEntity item : cartItems){
