@@ -123,11 +123,17 @@
     Có JWT -> user cart
     Không có JWT -> guest cart qua session_id/cookie
 - Order API:
-  + POST /orders → Tạo đơn hàng (require auth)
-  + POST /guest/orders -> Tạo đơn hàng cho khách không  
-  + GET /orders → Lấy danh sách đơn hàng của khách hàng (require auth)
+  + POST /orders → Tạo đơn hàng từ cart (require auth)
+  + GET /orders → Lấy danh sách đơn hàng (require auth)
   + GET /orders/{id} → Lấy thông tin chi tiết đơn hàng (require auth)
-  + PUT /admin/orders/{id}/status → Cập nhật trạng thái đơn hàng (require ADMIN)
+  + PATCH /orders/{id}/cancel -> Hủy đơn hàng (Điều kiện: Pending, Confirmed) (require auth)
+  + GET /admin/orders → Lấy danh sách tất cả các đơn hàng (require ADMIN)
+  + GET /admin/orders/{id} -> Xem chi tiết đơn hàng 
+  + GET /admin/orders?status=PENDING&code=ORD001&phone=0909 -> Tìm kiếm đơn hàng
+  + PATCH /admin/orders/{id}/confirm -> Xác nhận đơn (PENDING -> CONFIRMED)
+  + PATCH /admin/orders/{id}/preparing -> Đang chuẩn bị (CONFIRMED -> PREPARING)
+  + PATCH /admin/orders/{id}/shipping -> Đang ship (PREPARING -> SHIPPING)
+  + PATCH /admin/orders/{id}/delivered -> Giao thành công
   + DELETE /orders/{id} → Hủy đơn hàng (require auth)
 - Address API:
   + GET /users/me/addresses -> Lấy dạnh sách địa chỉ khách hàng

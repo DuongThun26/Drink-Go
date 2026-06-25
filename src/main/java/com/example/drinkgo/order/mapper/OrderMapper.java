@@ -7,6 +7,8 @@ import com.example.drinkgo.order.entity.OrderEntity;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 
+import java.util.List;
+
 @Mapper(componentModel = "spring")
 public interface OrderMapper {
     OrderResponse toResponse(OrderEntity order);
@@ -16,4 +18,5 @@ public interface OrderMapper {
     OrderDetailResponse toOrderDetail(OrderEntity order);
     OrderEntity toEntity(OrderRequest request);
 
+    List<OrderResponse> toResponseList(List<OrderEntity> orderEntities);
 }

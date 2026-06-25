@@ -72,4 +72,7 @@ public class OrderEntity extends BaseEntity {
 
     @OneToMany(mappedBy = "order", fetch = FetchType.LAZY)
     private List<OrderDetailEntity> orderDetails;
+
+    @Column(name = "session_id")
+    private String sessionId;
 }
