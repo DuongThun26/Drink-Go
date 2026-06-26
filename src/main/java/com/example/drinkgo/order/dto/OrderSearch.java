@@ -17,4 +17,6 @@ public class OrderSearch {
     private String paymentMethod;
     private LocalDate fromDate;
     private LocalDate toDate;
+    private Long userId;
+    private String sessionId;
 }

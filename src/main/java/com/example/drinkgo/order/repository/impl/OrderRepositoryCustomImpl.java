@@ -48,6 +48,12 @@ public class OrderRepositoryCustomImpl implements OrderRepositoryCustom {
         if(orderSearch.getReceivePhone() != null){
             where.append(" AND o.receivephone = :receivePhone ");
         }
+        if(orderSearch.getUserId() != null){
+            where.append(" AND o.user_id = :userId ");
+        }
+        if(orderSearch.getSessionId() != null){
+            where.append(" AND o.session_id = :sessionId ");
+        }
     }
 
     private void setParameter(Query query, OrderSearch orderSearch){
@@ -65,6 +71,12 @@ public class OrderRepositoryCustomImpl implements OrderRepositoryCustom {
             query.setParameter(
                     "receivePhone", orderSearch.getReceivePhone()
             );
+        }
+        if(orderSearch.getUserId() != null){
+            query.setParameter("userId", orderSearch.getUserId());
+        }
+        if(orderSearch.getSessionId() != null){
+            query.setParameter("sessionId", orderSearch.getSessionId());
         }
         if(orderSearch.getFromDate() != null
                 && orderSearch.getToDate() != null){
@@ -95,4 +107,3 @@ public class OrderRepositoryCustomImpl implements OrderRepositoryCustom {
         }
     }
 }
-

@@ -25,6 +25,9 @@ import com.example.drinkgo.product.repository.ProductRepository;
 import com.example.drinkgo.product.repository.ProductVariantRepository;
 import com.example.drinkgo.user.entity.UserEntity;
 import lombok.RequiredArgsConstructor;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.GrantedAuthority;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -46,10 +49,33 @@ public class OrderServiceImpl implements OrderService{
 
 
     @Override
-    public List<OrderResponse> getOrders(Map<String, Object> orderSearch) {
-        OrderSearch orderSearchConver = orderSearchConverter.toOrderSearch(orderSearch);
-        List<OrderEntity> orderEntities = orderRepository.findOrders(orderSearchConver);
+    public List<OrderResponse> getOrders(Map<String, Object> orderSearch, String cartGuest) {
+        OrderSearch search = orderSearchConverter.toOrderSearch(orderSearch);
+        applyPermissionScope(search, cartGuest);
+        List<OrderEntity> orderEntities = orderRepository.findOrders(search);
         return orderMapper.toResponseList(orderEntities);
+    }
+
+    private void applyPermissionScope(OrderSearch search, String cartGuest) {
+        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+        boolean authenticated = auth != null
+                && auth.isAuthenticated()
+                && !"anonymousUser".equals(auth.getPrincipal());
+
+        if (authenticated) {
+            boolean isAdmin = auth.getAuthorities().stream()
+                    .map(GrantedAuthority::getAuthority)
+                    .anyMatch("ROLE_ADMIN"::equals);
+            if (isAdmin) {
+                return;
+            }
+            UserEntity user = authenticationFacade.getCurrentUser();
+            search.setUserId(user.getId());
+            search.setSessionId(null);
+            return;
+        }
+        search.setUserId(null);
+        search.setSessionId(cartGuest);
     }
 
     // Lấy thông tin chi tiết đơn hàng
@@ -106,6 +132,7 @@ public class OrderServiceImpl implements OrderService{
         order.setPaymentMethod(orderRequest.getPaymentMethod());
         order.setTotalAmount(totalAmount);
         order.setFinalAmount(totalAmount);
+        order.setStatus(OrderStatus.PENDING);
         orderRepository.save(order);
         cartItemRepository.deleteAll(cartItems);
         return orderMapper.toResponse(order);
