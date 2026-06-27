@@ -11,14 +11,17 @@ import com.example.drinkgo.order.dto.request.OrderRequest;
 import com.example.drinkgo.order.dto.response.OrderDetailResponse;
 import com.example.drinkgo.order.dto.response.OrderResponse;
 import com.example.drinkgo.order.entity.OrderDetailEntity;
+import com.example.drinkgo.order.entity.OrderDetailToppingEntity;
 import com.example.drinkgo.order.entity.OrderEntity;
 import com.example.drinkgo.order.enums.OrderStatus;
 import com.example.drinkgo.order.exception.OrderNotFoundException;
 import com.example.drinkgo.order.mapper.OrderMapper;
 import com.example.drinkgo.order.repository.OrderDetailRepository;
+import com.example.drinkgo.order.repository.OrderDetailToppingRepository;
 import com.example.drinkgo.order.repository.OrderRepository;
 import com.example.drinkgo.product.entity.ProductEntity;
 import com.example.drinkgo.product.entity.ProductVariantEntity;
+import com.example.drinkgo.product.entity.ToppingEntity;
 import com.example.drinkgo.product.enums.ProductType;
 import com.example.drinkgo.product.exception.ProductVariantNotFoundException;
 import com.example.drinkgo.product.repository.ProductRepository;
@@ -43,6 +46,7 @@ public class OrderServiceImpl implements OrderService{
     private final AuthenticationFacade authenticationFacade;
     private final CartRepository cartRepository;
     private final OrderDetailRepository orderDetailRepository;
+    private final OrderDetailToppingRepository orderDetailToppingRepository;
     private final CartItemRepository cartItemRepository;
     private final ProductVariantRepository productVariantRepository;
     private final OrderSearchConverter orderSearchConverter;
@@ -56,6 +60,7 @@ public class OrderServiceImpl implements OrderService{
         return orderMapper.toResponseList(orderEntities);
     }
 
+    // Thêm điều kiện lọc theo vai trò
     private void applyPermissionScope(OrderSearch search, String cartGuest) {
         Authentication auth = SecurityContextHolder.getContext().getAuthentication();
         boolean authenticated = auth != null
@@ -91,11 +96,7 @@ public class OrderServiceImpl implements OrderService{
     public OrderResponse createOrder(OrderRequest orderRequest, String cartGuest) {
         CartEntity cart;
         UserEntity user = null;
-        try {
-            user = authenticationFacade.getCurrentUser();
-        } catch (Exception e) {
-
-        }
+        user = authenticationFacade.getCurrentUser();
         if (user != null) {
             cart = cartRepository.findByUserId(user.getId())
                     .orElseThrow(() -> new OrderNotFoundException("Cart not found for user"));
@@ -105,59 +106,89 @@ public class OrderServiceImpl implements OrderService{
         } else {
             throw new OrderNotFoundException("Cannot create order without a cart");
         }
+
         List<CartItemEntity> cartItems = cart.getCartItems();
+
+        // Tạo order entity
         OrderEntity order = orderMapper.toEntity(orderRequest);
         if (user != null) {
             order.setUser(user);
-        }
-        else{
+        } else {
             order.setSessionId(cartGuest);
         }
+        // Sinh order code
+        String orderCode = "ORD-" + System.currentTimeMillis();
+        order.setCode(orderCode);
         orderRepository.save(order);
+
+        // Xử lý order details và toppings
         Long totalAmount = 0L;
-        for(CartItemEntity item : cartItems){
-            Long price = item.getUnitPrice();
-            Long quantity = item.getQuantity();
-            totalAmount += price * quantity;
+
+        for (CartItemEntity cartItem : cartItems) {
+            Long productPrice = cartItem.getUnitPrice() * cartItem.getQuantity();
+            Long toppingTotalCost = 0L;
+
+            // Tạo order detail
             OrderDetailEntity orderDetail = OrderDetailEntity.builder()
-                    .quantity(quantity)
-                    .unitPrice(item.getUnitPrice())
-                    .sizeName(item.getProductVariant().getSizeName())
-                    .productName(item.getProductVariant().getProduct().getName())
-                    .productVariantId(item.getProductVariant().getId())
+                    .quantity(cartItem.getQuantity())
+                    .unitPrice(cartItem.getUnitPrice())
+                    .sizeName(cartItem.getProductVariant().getSizeName())
+                    .productName(cartItem.getProductVariant().getProduct().getName())
+                    .productVariantId(cartItem.getProductVariant().getId())
                     .order(order)
                     .build();
             orderDetailRepository.save(orderDetail);
+
+            // Tạo order detail topping
+            if (cartItem.getToppings() != null && !cartItem.getToppings().isEmpty()) {
+                List<OrderDetailToppingEntity> orderDetailToppings = new java.util.ArrayList<>();
+
+                for (ToppingEntity topping : cartItem.getToppings()) {
+                    // Lấy tên và giá topping tại lúc xét
+                    OrderDetailToppingEntity orderDetailTopping = OrderDetailToppingEntity.builder()
+                            .toppingName(topping.getName())           // Snapshot name
+                            .toppingPrice(topping.getPrice())         // Snapshot price
+                            .quantity(1L)                             // Qty 1 for each topping
+                            .orderDetail(orderDetail)
+                            .topping(topping)                         // Reference for audit
+                            .build();
+
+                    orderDetailToppingRepository.save(orderDetailTopping);
+                    orderDetailToppings.add(orderDetailTopping);
+
+                    // Tính tổng giá topping
+                    toppingTotalCost += topping.getPrice();
+                }
+                orderDetail.setOrderDetailToppings(orderDetailToppings);
+            }
+
+            // Tính total price
+            Long detailTotalPrice = productPrice + toppingTotalCost;
+            orderDetail.setTotalPrice(detailTotalPrice);
+            orderDetailRepository.save(orderDetail);
+
+            totalAmount += detailTotalPrice;
         }
+
         order.setPaymentMethod(orderRequest.getPaymentMethod());
         order.setTotalAmount(totalAmount);
+        order.setDiscountAmount(0L);
         order.setFinalAmount(totalAmount);
         order.setStatus(OrderStatus.PENDING);
         orderRepository.save(order);
+
+        // Xóa đơn hàng khỏi cart
         cartItemRepository.deleteAll(cartItems);
         return orderMapper.toResponse(order);
     }
 
-    // Xóa đơn hàng
-    @Override
-    public void deleteOrder(Long id) {
-
-    }
 
 
     // Hủy đơn hàng
     @Transactional
     @Override
     public OrderResponse cancelOrder(String cartGuest, Long id) {
-        UserEntity user = null;
-        OrderEntity order;
-        user = authenticationFacade.getCurrentUser();
-        if(user != null){
-            order = orderRepository.findByUserAndId(user, id);
-        }
-        else{
-            order = orderRepository.findBySessionIdAndId(cartGuest, id);
-        }
+        OrderEntity order = getAccessibleOrder(cartGuest, id);
         OrderStatus orderStatus = order.getStatus();
         if(orderStatus.equals(OrderStatus.CANCELLED)){
             throw new RuntimeException("Order already cancelled");
@@ -180,5 +211,92 @@ public class OrderServiceImpl implements OrderService{
         else{
             throw new RuntimeException("Order cannot be cancelled");
         }
+    }
+
+    // Xác nhận đơn hàng
+    @Override
+    public OrderResponse confirmOrder(String sessionId, Long id) {
+        OrderEntity order = getAccessibleOrder(sessionId, id);
+        if(order.getStatus().equals(OrderStatus.PENDING)){
+            order.setStatus(OrderStatus.CONFIRMED);
+            orderRepository.save(order);
+            return orderMapper.toResponse(order);
+        }
+        else{
+            throw new RuntimeException("The order has been confirmed or canceled!");
+        }
+
+    }
+
+    // Chuẩn bị đơn hàng
+    @Override
+    public OrderResponse preparingOrder(String sessionId, Long id) {
+        OrderEntity order = getAccessibleOrder(sessionId, id);
+        if(order.getStatus().equals(OrderStatus.CONFIRMED)){
+            order.setStatus(OrderStatus.PREPARING);
+            orderRepository.save(order);
+            return orderMapper.toResponse(order);
+        }
+        else{
+            throw new RuntimeException("The order has been preparing or canceled!");
+        }
+    }
+
+    // Đang ship
+    @Override
+    public OrderResponse shippingOrder(String sessionId, Long id) {
+        OrderEntity order = getAccessibleOrder(sessionId, id);
+        if(order.getStatus().equals(OrderStatus.PREPARING)){
+            order.setStatus(OrderStatus.SHIPPING);
+            orderRepository.save(order);
+            return orderMapper.toResponse(order);
+        }
+        else{
+            throw new RuntimeException("The order has been shipping or canceled!");
+        }
+    }
+
+    // Giao hàng
+    @Override
+    public OrderResponse deliveredOrder(String sessionId, Long id) {
+        OrderEntity order = getAccessibleOrder(sessionId, id);
+        if(order.getStatus().equals(OrderStatus.SHIPPING)){
+            order.setStatus(OrderStatus.DELIVERED);
+            orderRepository.save(order);
+            return orderMapper.toResponse(order);
+        }
+        else{
+            throw new RuntimeException("The order has been delivered or canceled!");
+        }
+    }
+
+    // Hoàn thành đơn hàng
+    @Override
+    public OrderResponse completedOrder(String sessionId, Long id) {
+        OrderEntity order = getAccessibleOrder(sessionId, id);
+        if(order.getStatus().equals(OrderStatus.DELIVERED)){
+            order.setStatus(OrderStatus.COMPLETED);
+            orderRepository.save(order);
+            return orderMapper.toResponse(order);
+        }
+        else{
+            throw new RuntimeException("The order has been canceled!");
+        }
+    }
+
+    // Lấy order
+    private OrderEntity getAccessibleOrder(String cartGuest, Long id){
+        OrderEntity order = null;
+        UserEntity user = authenticationFacade.getCurrentUser();
+        if(user != null){
+            order = orderRepository.findByUserAndId(user, id);
+        }
+        else{
+            order = orderRepository.findBySessionIdAndId(cartGuest, id);
+        }
+        if(order == null){
+            throw new OrderNotFoundException("Order not found or you don't have permission to access it");
+        }
+        return order;
     }
 }

@@ -9,13 +9,15 @@ import org.mapstruct.Mapping;
 
 import java.util.List;
 
-@Mapper(componentModel = "spring")
+@Mapper(componentModel = "spring", uses = {OrderDetailMapper.class})
 public interface OrderMapper {
     OrderResponse toResponse(OrderEntity order);
+
     @Mapping(source = "status", target = "orderStatus")
     @Mapping(source = "receivename", target = "receiveName")
     @Mapping(source = "orderDetails", target = "orderItems")
     OrderDetailResponse toOrderDetail(OrderEntity order);
+
     OrderEntity toEntity(OrderRequest request);
 
     List<OrderResponse> toResponseList(List<OrderEntity> orderEntities);

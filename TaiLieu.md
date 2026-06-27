@@ -134,7 +134,6 @@
   + PATCH /admin/orders/{id}/preparing -> Đang chuẩn bị (CONFIRMED -> PREPARING)
   + PATCH /admin/orders/{id}/shipping -> Đang ship (PREPARING -> SHIPPING)
   + PATCH /admin/orders/{id}/delivered -> Giao thành công
-  + DELETE /orders/{id} → Hủy đơn hàng (require auth)
 - Address API:
   + GET /users/me/addresses -> Lấy dạnh sách địa chỉ khách hàng
   + POST /users/me/addresses -> Thêm địa chỉ mới của khách hàng

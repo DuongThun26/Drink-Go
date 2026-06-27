@@ -33,7 +33,6 @@ public class ToppingEntity extends BaseEntity {
     @Column(name = "price")
     private Long price;
 
-    @NotNull(message = "Topping status must not be null")
     @Enumerated(EnumType.STRING)
     private ToppingStatus status;
 

@@ -1,13 +1,18 @@
 package com.example.drinkgo.cart.service;
 
-import com.example.drinkgo.cart.dto.response.CartResponse;
 import com.example.drinkgo.cart.dto.request.CartItemRequest;
+import com.example.drinkgo.cart.dto.response.CartItemResponse;
+import com.example.drinkgo.cart.dto.response.CartResponse;
 import com.example.drinkgo.cart.entity.CartEntity;
 import com.example.drinkgo.cart.entity.CartItemEntity;
+import com.example.drinkgo.cart.mapper.CartMapper;
 import com.example.drinkgo.cart.repository.CartItemRepository;
 import com.example.drinkgo.cart.repository.CartRepository;
 import com.example.drinkgo.product.entity.ProductVariantEntity;
+import com.example.drinkgo.product.entity.ToppingEntity;
+import com.example.drinkgo.product.mapper.ToppingMapper;
 import com.example.drinkgo.product.repository.ProductVariantRepository;
+import com.example.drinkgo.product.repository.ToppingRepository;
 import com.example.drinkgo.user.entity.UserEntity;
 import com.example.drinkgo.user.exception.UserNotFoundException;
 import com.example.drinkgo.user.repository.UserRepository;
@@ -26,17 +31,23 @@ public class CartServiceImpl implements CartService {
     private final CartItemRepository cartItemRepository;
     private final ProductVariantRepository productVariantRepository;
     private final UserRepository userRepository;
+    private final ToppingRepository toppingRepository;
+    private final CartMapper cartMapper;
+    private final ToppingMapper toppingMapper;
 
+    // Lấy cart
     @Override
     public CartResponse getCart(String cartGuest, Long userId) {
         CartEntity cartEntity = getCartEntity(cartGuest, userId);
         return mapToCartDto(cartEntity);
     }
 
+    // Thêm item vào cart
     @Override
     public CartResponse addItemToCart(String cartGuest, Long userId, CartItemRequest item) {
         CartEntity cartEntity = getCartEntity(cartGuest, userId);
         Optional<ProductVariantEntity> productVariant = productVariantRepository.findById(item.getProductVariantId());
+        List<ToppingEntity> toppings = toppingRepository.findAllById(item.getToppings());
         if (productVariant.isPresent()) {
             Optional<CartItemEntity> existingItem = cartEntity.getCartItems().stream()
                     .filter(cartItem -> cartItem.getProductVariant().getId().equals(item.getProductVariantId()))
@@ -45,6 +56,7 @@ public class CartServiceImpl implements CartService {
             if (existingItem.isPresent()) {
                 CartItemEntity cartItem = existingItem.get();
                 cartItem.setQuantity(cartItem.getQuantity() + item.getQuantity());
+                cartItem.setToppings(toppings);
                 cartItemRepository.save(cartItem);
             } else {
                 CartItemEntity cartItem = new CartItemEntity();
@@ -52,6 +64,7 @@ public class CartServiceImpl implements CartService {
                 cartItem.setProductVariant(productVariant.get());
                 cartItem.setQuantity(Long.valueOf(item.getQuantity()));
                 cartItem.setUnitPrice(productVariant.get().getPrice());
+                cartItem.setToppings(toppings);
                 cartItemRepository.save(cartItem);
                 cartEntity.getCartItems().add(cartItem);
             }
@@ -60,6 +73,7 @@ public class CartServiceImpl implements CartService {
         return mapToCartDto(cartEntity);
     }
 
+    // Cập nhật số lượng item trong cart
     @Override
     public CartResponse updateCartItem(String cartGuest, Long userId, Long id, CartItemRequest item) {
         CartEntity cartEntity = getCartEntity(cartGuest, userId);
@@ -71,6 +85,8 @@ public class CartServiceImpl implements CartService {
         return mapToCartDto(cartEntity);
     }
 
+
+    // Xóa sản phẩm trong cart
     @Override
     public void deleteCartItem(String cartGuest, Long userId, Long id) {
         CartEntity cartEntity = getCartEntity(cartGuest, userId);
@@ -80,12 +96,14 @@ public class CartServiceImpl implements CartService {
         }
     }
 
+    // Xóa cart
     @Override
     public void clearCart(String cartGuest, Long userId) {
         CartEntity cartEntity = getCartEntity(cartGuest, userId);
         cartItemRepository.deleteAll(cartEntity.getCartItems());
     }
 
+    // Merge cart
     @Override
     public void mergeCarts(String cartGuest, Long userId) {
         Optional<CartEntity> guestCartOpt = cartRepository.findBySessionId(cartGuest);
@@ -111,6 +129,7 @@ public class CartServiceImpl implements CartService {
         }
     }
 
+    // Lấy cart
     private CartEntity getCartEntity(String cartGuest, Long userId) {
         if (userId != null) {
             UserEntity user = userRepository.findById(userId)
@@ -137,18 +156,19 @@ public class CartServiceImpl implements CartService {
     private CartResponse mapToCartDto(CartEntity cartEntity) {
         CartResponse cartDto = new CartResponse();
         if (cartEntity != null) {
-            List<CartItemRequest> cartItemRequests = cartEntity.getCartItems().stream().map(this::mapToCartItemDto).collect(Collectors.toList());
-            cartDto.setItems(cartItemRequests);
-            cartDto.setTotalPrice(cartEntity.getCartItems().stream().mapToDouble(item -> item.getUnitPrice() * item.getQuantity()).sum());
+            List<CartItemResponse> cartItemResponses = cartEntity.getCartItems().stream().map(this::mapToCartItemDto).collect(Collectors.toList());
+            cartDto.setItems(cartItemResponses);
+            cartDto.setTotalPrice(cartItemResponses.stream().mapToLong(CartItemResponse::getTotalPrice).sum());
         }
         return cartDto;
     }
 
-    private CartItemRequest mapToCartItemDto(CartItemEntity cartItemEntity) {
-        CartItemRequest cartItemRequest = new CartItemRequest();
-        cartItemRequest.setProductVariantId(cartItemEntity.getProductVariant().getId());
-        cartItemRequest.setQuantity(cartItemEntity.getQuantity().intValue());
-        return cartItemRequest;
+    private CartItemResponse mapToCartItemDto(CartItemEntity cartItemEntity) {
+        CartItemResponse cartItemResponse = cartMapper.toCartItemResponse(cartItemEntity);
+        List<ToppingEntity> toppings = cartItemEntity.getToppings();
+        Long toppingPrices = toppings.stream().mapToLong(topping -> topping.getPrice()).sum();
+        cartItemResponse.setTotalPrice(cartItemEntity.getUnitPrice() * cartItemEntity.getQuantity() + toppingPrices);
+        return cartItemResponse;
     }
 
 }
