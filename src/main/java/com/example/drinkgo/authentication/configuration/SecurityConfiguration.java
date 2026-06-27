@@ -31,7 +31,7 @@ public class SecurityConfiguration {
     private final UserDetailServiceCustom userDetailServiceCustom;
 
     private String[] listPermit = {"/auth/register", "/auth/login", "/auth/refresh", "/auth/reset", "/auth/forgot",
-            "/users", "/cart", "/cart/items"
+            "/users", "/cart", "/cart/items", "/orders", "/orders/{id}/cancel "
     };
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
@@ -55,7 +55,7 @@ public class SecurityConfiguration {
                         .requestMatchers("/address/guest/**").permitAll()
                         .requestMatchers(HttpMethod.GET, "/categories", "/categories/{id}", "/products",
                                 "/products/{id}", "/toppings", "/products/{productId}/variants", "/promotions", "/promotion/{id}",
-                                "/store-settings", "/store-schedules", "/products/{productId}/reviews"
+                                "/store-settings", "/store-schedules", "/products/{productId}/reviews", "/orders/{id}"
                         ).permitAll()
                         .requestMatchers(HttpMethod.POST, "/promotions/validate" ).permitAll()
                         .requestMatchers("/admin/**").hasRole("ADMIN")

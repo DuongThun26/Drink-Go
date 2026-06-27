@@ -3,7 +3,6 @@ package com.example.drinkgo.authentication.security;
 import com.example.drinkgo.user.entity.UserEntity;
 import com.example.drinkgo.user.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
-import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
@@ -17,8 +16,8 @@ public class AuthenticationFacade {
 
     public UserEntity getCurrentUser(){
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-        if(authentication == null || !authentication.isAuthenticated()){
-            throw new BadCredentialsException("User not authenticated!");
+        if(authentication == null || !authentication.isAuthenticated() || "anonymousUser".equals(authentication.getPrincipal())){
+            return null;
         }
         String username = authentication.getName();
         UserEntity user = userRepository.findByUsername(username).orElseThrow(() -> new UsernameNotFoundException("User not found"));

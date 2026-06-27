@@ -28,7 +28,7 @@ public class CartEntity extends BaseEntity {
     @Enumerated(EnumType.STRING)
     private CartStatus status;
 
-    @ManyToOne(fetch = FetchType.LAZY)
+    @ManyToOne
     @JoinColumn(name = "user_id")
     private UserEntity user;
 

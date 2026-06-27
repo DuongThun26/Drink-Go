@@ -3,6 +3,7 @@ package com.example.drinkgo.user.entity;
 import com.example.drinkgo.address.entity.AddressEntity;
 import com.example.drinkgo.cart.entity.CartEntity;
 import com.example.drinkgo.common.BaseEntity;
+import com.example.drinkgo.order.entity.OrderEntity;
 import com.example.drinkgo.review.entity.ReviewEntity;
 import com.example.drinkgo.user.enums.UserStatus;
 import jakarta.persistence.*;
@@ -65,6 +66,9 @@ public class UserEntity extends BaseEntity implements UserDetails{
 
     @OneToMany(fetch = FetchType.LAZY, mappedBy = "user")
     private List<CartEntity> carts;
+
+    @OneToMany(mappedBy = "user", fetch = FetchType.LAZY)
+    private List<OrderEntity> orders;
 
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {
