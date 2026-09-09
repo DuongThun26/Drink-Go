@@ -1,0 +1,16 @@
+.topping-selector {
+  margin-top: 1.5rem;
+  padding-top: 1.5rem;
+  border-top: 1px solid #eee;
+}
+
+.topping-selector h4 {
+  font-size: 1.1rem;
+  font-weight: bold;
+  margin-bottom: 1rem;
+}
+
+.error-message {
+  color: #dc3545;
+  font-size: 0.9rem;
+}

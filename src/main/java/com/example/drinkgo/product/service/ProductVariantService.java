@@ -3,10 +3,12 @@ package com.example.drinkgo.product.service;
 import com.example.drinkgo.product.dto.request.ProductVariantRequest;
 import com.example.drinkgo.product.dto.response.ProductVariantResponse;
 import com.example.drinkgo.product.entity.ProductEntity;
+import com.example.drinkgo.product.entity.ProductSize;
 import com.example.drinkgo.product.entity.ProductVariantEntity;
 import com.example.drinkgo.product.exception.ProductVariantNotFoundException;
 import com.example.drinkgo.product.mapper.ProductVariantMapper;
 import com.example.drinkgo.product.repository.ProductRepository;
+import com.example.drinkgo.product.repository.ProductSizeRepository;
 import com.example.drinkgo.product.repository.ProductVariantRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -18,6 +20,7 @@ import java.util.List;
 public class ProductVariantService {
     private final ProductVariantRepository productVariantRepository;
     private final ProductRepository productRepository;
+    private final ProductSizeRepository productSizeRepository;
     private final ProductVariantMapper productVariantMapper;
 
     public List<ProductVariantResponse> getProductVariants(Long productId) {
@@ -31,8 +34,12 @@ public class ProductVariantService {
 
     public ProductVariantResponse createProductVariant(Long productId, ProductVariantRequest request){
         ProductEntity product = productRepository.findById(productId).orElseThrow(() -> new RuntimeException("Product not found"));
+        ProductSize size = productSizeRepository.findById(request.getSizeId())
+                .orElseThrow(() -> new RuntimeException("Size not found with id: " + request.getSizeId()));
+        
         ProductVariantEntity variant = productVariantMapper.toEntity(request);
         variant.setProduct(product);
+        variant.setSize(size);
         productVariantRepository.save(variant);
         return productVariantMapper.toResponse(variant);
     }
@@ -43,7 +50,12 @@ public class ProductVariantService {
         if (variant.getProduct() == null || !variant.getProduct().getId().equals(productId)) {
             throw new ProductVariantNotFoundException("Variant not found for product id: " + productId);
         }
+        
+        ProductSize size = productSizeRepository.findById(request.getSizeId())
+                .orElseThrow(() -> new RuntimeException("Size not found with id: " + request.getSizeId()));
+        
         productVariantMapper.updateEntity(request, variant);
+        variant.setSize(size);
         ProductVariantEntity updated = productVariantRepository.save(variant);
 
         return productVariantMapper.toResponse(updated);

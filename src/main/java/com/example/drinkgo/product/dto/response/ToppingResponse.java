@@ -3,6 +3,8 @@ package com.example.drinkgo.product.dto.response;
 import com.example.drinkgo.product.enums.ToppingStatus;
 import lombok.*;
 
+import java.util.List;
+
 @Getter
 @Setter
 @Builder
@@ -13,4 +15,5 @@ public class ToppingResponse {
     private String name;
     private Long price;
     private ToppingStatus status;
+    private List<String> images;
 }

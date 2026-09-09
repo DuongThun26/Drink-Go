@@ -1,0 +1,46 @@
+.promo-form {
+  display: flex;
+  gap: 0.5rem;
+  align-items: center;
+}
+
+.promo-form input {
+  flex-grow: 1;
+  padding: 0.75rem;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+}
+
+.promo-form button {
+  padding: 0.75rem 1rem;
+  background-color: #28a745;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+}
+
+.promo-applied {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background-color: #e9f5ec;
+  padding: 0.75rem;
+  border-radius: 4px;
+}
+
+.promo-applied button {
+  background: none;
+  border: none;
+  color: #dc3545;
+  cursor: pointer;
+  text-decoration: underline;
+}
+
+.error-message {
+  color: #dc3545;
+  font-size: 0.9rem;
+  margin-top: 0.5rem;
+  width: 100%;
+  text-align: center;
+}

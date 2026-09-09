@@ -36,6 +36,9 @@ public class ToppingEntity extends BaseEntity {
     @Enumerated(EnumType.STRING)
     private ToppingStatus status;
 
+    @Column(name = "images")
+    private List<String> images;
+
     @ManyToMany(fetch = FetchType.LAZY)
     @JoinTable(name = "producttopping",
         joinColumns = @JoinColumn(name = "topping_id"),

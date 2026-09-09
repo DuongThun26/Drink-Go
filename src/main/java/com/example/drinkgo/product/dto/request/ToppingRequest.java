@@ -6,6 +6,8 @@ import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.PositiveOrZero;
 import lombok.Getter;
 
+import java.util.List;
+
 @Getter
 public class ToppingRequest {
     @NotBlank(message = "Topping name must not be blank")
@@ -17,4 +19,6 @@ public class ToppingRequest {
 
     @NotNull(message = "Topping status must not be null")
     private ToppingStatus status;
+
+    private List<String> images;
 }

@@ -10,7 +10,7 @@ import org.mapstruct.MappingTarget;
 
 import java.util.List;
 
-@Mapper(componentModel = "spring")
+@Mapper(componentModel = "spring", uses = {ProductVariantMapper.class})
 public interface ProductMapper {
     @Mapping(source = "category.name", target = "category")
     ProductResponse toResponse(ProductEntity product);

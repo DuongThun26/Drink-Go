@@ -165,9 +165,25 @@ public class CartServiceImpl implements CartService {
 
     private CartItemResponse mapToCartItemDto(CartItemEntity cartItemEntity) {
         CartItemResponse cartItemResponse = cartMapper.toCartItemResponse(cartItemEntity);
+        
+        // Add product and variant info
+        ProductVariantEntity variant = cartItemEntity.getProductVariant();
+        if (variant != null) {
+            cartItemResponse.setProductName(variant.getProduct().getName());
+            if (variant.getSize() != null) {
+                cartItemResponse.setVariantSizeName(variant.getSize().getName());
+            }
+            cartItemResponse.setVariantPrice(variant.getPrice());
+            cartItemResponse.setAvailableToppings(
+                toppingMapper.toListResponse(variant.getProduct().getToppings())
+            );
+        }
+        
+        // Calculate total price with toppings
         List<ToppingEntity> toppings = cartItemEntity.getToppings();
         Long toppingPrices = toppings.stream().mapToLong(topping -> topping.getPrice()).sum();
-        cartItemResponse.setTotalPrice(cartItemEntity.getUnitPrice() * cartItemEntity.getQuantity() + toppingPrices);
+        cartItemResponse.setTotalPrice((cartItemEntity.getUnitPrice() + toppingPrices) * cartItemEntity.getQuantity());
+        
         return cartItemResponse;
     }
 

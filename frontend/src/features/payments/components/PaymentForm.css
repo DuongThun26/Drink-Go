@@ -1,0 +1,35 @@
+.payment-form {
+  padding: 1.5rem;
+  border: 1px solid #e0e0e0;
+  border-radius: 8px;
+}
+
+.card-element-placeholder {
+  padding: 2rem;
+  border: 1px dashed #ccc;
+  border-radius: 4px;
+  text-align: center;
+  color: #6c757d;
+  margin-bottom: 1.5rem;
+}
+
+.payment-error {
+  color: #dc3545;
+  margin-bottom: 1rem;
+}
+
+.pay-button {
+  width: 100%;
+  padding: 0.8rem;
+  font-size: 1rem;
+  font-weight: bold;
+  color: white;
+  background-color: #007bff;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+}
+
+.pay-button:disabled {
+  background-color: #a0a0a0;
+}

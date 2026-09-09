@@ -6,7 +6,7 @@ import jakarta.persistence.*;
 import jakarta.validation.constraints.NotBlank;
 import lombok.*;
 
-import java.util.Date;
+import java.time.LocalDateTime;
 
 @Entity
 @Getter
@@ -30,10 +30,10 @@ public class PromotionEntity {
     private String code;
 
     @Column(name = "promotionstart")
-    private Date promotionStart;
+    private LocalDateTime promotionStart;
 
     @Column(name = "promotionend")
-    private Date promotionEnd;
+    private LocalDateTime promotionEnd;
 
     @Column(name = "discountpercent")
     private Integer discountPercent;

@@ -61,7 +61,7 @@ public class AuthenticationService {
         refreshTokenWhitelistRepository.deleteById(jwtInfor.getId());
         return issueTokens(user);
     }
-    public LoginResponse issueTokens(UserEntity user){
+    public LoginResponse  issueTokens(UserEntity user){
         TokenPayload refreshTokenPayload = jwtService.generateRefreshToken(user);
         TokenPayload accessTokenPayload = jwtService.generateAccessToken(user, refreshTokenPayload.getJwtId());
 

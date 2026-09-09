@@ -1,0 +1,24 @@
+.payment-method {
+  display: flex;
+  align-items: center;
+  padding: 1rem;
+  border: 1px solid #ccc;
+  border-radius: 5px;
+  cursor: pointer;
+  margin-bottom: 0.5rem;
+}
+
+.payment-method.selected {
+  border-color: #007bff;
+  background-color: #f0f8ff;
+}
+
+.card-brand-icon {
+  margin-right: 1rem;
+  font-weight: bold; /* In a real app, you'd use an icon library */
+}
+
+.card-details {
+  font-family: monospace;
+  font-size: 1.1rem;
+}

@@ -6,7 +6,7 @@ import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import lombok.Getter;
 
-import java.util.Date;
+import java.time.LocalDateTime;
 
 @Getter
 public class PromotionRequest {
@@ -16,9 +16,11 @@ public class PromotionRequest {
     @NotBlank(message = "Promotion code not blank")
     private String code;
 
-    private Date promotionStart;
+    @NotNull(message = "Promotion start date not null")
+    private LocalDateTime promotionStart;
 
-    private Date promotionEnd;
+    @NotNull(message = "Promotion end date not null")
+    private LocalDateTime promotionEnd;
 
     @NotNull
     private Integer discountPercent;

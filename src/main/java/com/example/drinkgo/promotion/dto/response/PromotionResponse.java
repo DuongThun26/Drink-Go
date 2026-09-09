@@ -4,7 +4,7 @@ import com.example.drinkgo.promotion.enums.PromotionStatus;
 import com.example.drinkgo.promotion.enums.PromotionType;
 import lombok.*;
 
-import java.util.Date;
+import java.time.LocalDateTime;
 
 @Getter
 @Setter
@@ -15,8 +15,8 @@ public class PromotionResponse {
     private Long id;
     private String name;
     private String code;
-    private Date promotionStart;
-    private Date promotionEnd;
+    private LocalDateTime promotionStart;
+    private LocalDateTime promotionEnd;
     private Integer discountPercent;
     private Long quantity;
     private PromotionStatus status;

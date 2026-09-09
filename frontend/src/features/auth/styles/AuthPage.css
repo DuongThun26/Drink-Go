@@ -1,0 +1,28 @@
+/* Auth Page Styles */
+
+.auth-page {
+  min-height: calc(100vh - 200px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  padding: 2rem;
+}
+
+.auth-container {
+  width: 100%;
+  max-width: 450px;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .auth-page {
+    min-height: auto;
+    padding: 1rem;
+  }
+
+  .auth-container {
+    max-width: 100%;
+  }
+}
+

@@ -132,7 +132,7 @@ public class OrderServiceImpl implements OrderService{
             OrderDetailEntity orderDetail = OrderDetailEntity.builder()
                     .quantity(cartItem.getQuantity())
                     .unitPrice(cartItem.getUnitPrice())
-                    .sizeName(cartItem.getProductVariant().getSizeName())
+                    .sizeName(cartItem.getProductVariant().getSize().getName())
                     .productName(cartItem.getProductVariant().getProduct().getName())
                     .productVariantId(cartItem.getProductVariant().getId())
                     .order(order)

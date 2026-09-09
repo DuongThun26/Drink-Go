@@ -11,7 +11,7 @@ import com.example.drinkgo.promotion.repository.PromotionRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
-import java.util.Date;
+import java.time.LocalDateTime;
 import java.util.List;
 
 @Service
@@ -56,7 +56,7 @@ public class PromotionService {
         if(promotion == null) {
             throw new RuntimeException("Promotion does not exists");
         }
-        if (promotion.getStatus() != PromotionStatus.ACTIVE || promotion.getQuantity() <= 0 || promotion.getPromotionStart().after(new Date()) || promotion.getPromotionEnd().before(new Date())) {
+        if (promotion.getStatus() != PromotionStatus.ACTIVE || promotion.getQuantity() <= 0 || promotion.getPromotionStart().isAfter(LocalDateTime.now()) || promotion.getPromotionEnd().isBefore(LocalDateTime.now())) {
             throw new RuntimeException("Promotion invalid");
         }
         return true;
