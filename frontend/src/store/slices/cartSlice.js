@@ -51,6 +51,8 @@ const cartSlice = createSlice({
   initialState: {
     items: [],
     totalPrice: 0,
+    selectedItemIds: [],
+    hasInitializedSelection: false,
     loading: false,
     error: null,
   },
@@ -58,12 +60,36 @@ const cartSlice = createSlice({
     resetCart: (state) => {
       state.items = []
       state.totalPrice = 0
+      state.selectedItemIds = []
+      state.hasInitializedSelection = false
+    },
+    toggleSelectedCartItem: (state, action) => {
+      const itemId = action.payload
+      const exists = state.selectedItemIds.includes(itemId)
+      state.hasInitializedSelection = true
+      state.selectedItemIds = exists
+        ? state.selectedItemIds.filter((id) => id !== itemId)
+        : [...state.selectedItemIds, itemId]
+    },
+    toggleSelectAllCartItems: (state) => {
+      const itemIds = state.items.map((item) => item.id)
+      const allSelected =
+        itemIds.length > 0 && itemIds.every((itemId) => state.selectedItemIds.includes(itemId))
+      state.hasInitializedSelection = true
+      state.selectedItemIds = allSelected ? [] : itemIds
     },
   },
   extraReducers: (builder) => {
     const setCart = (state, action) => {
       state.items = action.payload.items || []
       state.totalPrice = action.payload.totalPrice || 0
+      const itemIds = state.items.map((item) => item.id)
+      if (!state.hasInitializedSelection) {
+        state.selectedItemIds = itemIds
+        state.hasInitializedSelection = true
+      } else {
+        state.selectedItemIds = state.selectedItemIds.filter((id) => itemIds.includes(id))
+      }
     }
 
     builder
@@ -99,9 +125,11 @@ const cartSlice = createSlice({
       .addCase(clearCartItems.fulfilled, (state) => {
         state.items = []
         state.totalPrice = 0
+        state.selectedItemIds = []
+        state.hasInitializedSelection = false
       })
   },
 })
 
-export const { resetCart } = cartSlice.actions
+export const { resetCart, toggleSelectedCartItem, toggleSelectAllCartItems } = cartSlice.actions
 export default cartSlice.reducer

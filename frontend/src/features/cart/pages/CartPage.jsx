@@ -1,9 +1,15 @@
 import { useEffect, useState } from 'react'
-import { Link } from 'react-router-dom'
+import { Link, useNavigate } from 'react-router-dom'
 import { useDispatch } from 'react-redux'
 import { Minus, Plus, Trash2, ShoppingBag, ChevronDown, ChevronUp } from 'lucide-react'
 import { toast } from 'sonner'
-import { fetchCart, updateCartItem, removeCartItem } from '@/store/slices/cartSlice'
+import {
+  fetchCart,
+  updateCartItem,
+  removeCartItem,
+  toggleSelectedCartItem,
+  toggleSelectAllCartItems,
+} from '@/store/slices/cartSlice'
 import { useCart } from '@/hooks/useCart'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from '@/components/ui/card'
@@ -13,8 +19,12 @@ import { formatCurrency } from '@/utils/formatters'
 
 export default function CartPage() {
   const dispatch = useDispatch()
-  const { items, totalPrice, loading } = useCart()
+  const navigate = useNavigate()
+  const { items, totalPrice, selectedItemIds, loading } = useCart()
   const [expandedItems, setExpandedItems] = useState({})
+  const selectedItems = items.filter((item) => selectedItemIds.includes(item.id))
+  const selectedTotal = selectedItems.reduce((sum, item) => sum + (item.totalPrice || 0), 0)
+  const allSelected = items.length > 0 && selectedItemIds.length === items.length
 
   useEffect(() => {
     dispatch(fetchCart())
@@ -84,6 +94,14 @@ export default function CartPage() {
     }
   }
 
+  const handleProceedToCheckout = () => {
+    if (selectedItemIds.length === 0) {
+      toast.error('Vui lòng chọn ít nhất 1 sản phẩm')
+      return
+    }
+    navigate('/checkout')
+  }
+
   if (loading && items.length === 0) {
     return (
       <div className="container mx-auto px-4 py-8">
@@ -109,25 +127,60 @@ export default function CartPage() {
       ) : (
         <div className="grid gap-8 lg:grid-cols-3">
           <div className="space-y-4 lg:col-span-2">
+            <div className="rounded-lg border bg-muted/30 p-3">
+              <label className="flex cursor-pointer items-center gap-3">
+                <input
+                  type="checkbox"
+                  checked={allSelected}
+                  onChange={() => dispatch(toggleSelectAllCartItems())}
+                  className="rounded border-input"
+                />
+                <span className="font-medium">Chọn tất cả sản phẩm</span>
+              </label>
+            </div>
+
             {items.map((item) => (
-              <Card key={item.id || item.productVariantId}>
+              <Card
+                key={item.id || item.productVariantId}
+                className={selectedItemIds.includes(item.id) ? 'border-primary' : ''}
+              >
                 <CardContent className="p-4">
                   <div className="flex items-start justify-between">
-                    <div className="flex-1">
-                      <p className="font-bold text-lg">{item.productName}</p>
-                      <p className="text-sm text-muted-foreground">
-                        Size: {item.variantSizeName} — {formatCurrency(item.variantPrice)}
-                      </p>
-                      
-                      {item.toppings?.length > 0 && (
-                        <p className="mt-2 text-sm text-muted-foreground">
-                          Toppings: {item.toppings.map((t) => t.name).join(', ')}
+                    <div
+                      role="button"
+                      tabIndex={0}
+                      className="flex flex-1 cursor-pointer items-start gap-3"
+                      onClick={() => dispatch(toggleSelectedCartItem(item.id))}
+                      onKeyDown={(e) => {
+                        if (e.key === 'Enter' || e.key === ' ') {
+                          e.preventDefault()
+                          dispatch(toggleSelectedCartItem(item.id))
+                        }
+                      }}
+                    >
+                      <input
+                        type="checkbox"
+                        checked={selectedItemIds.includes(item.id)}
+                        onChange={() => dispatch(toggleSelectedCartItem(item.id))}
+                        onClick={(e) => e.stopPropagation()}
+                        className="mt-1 rounded border-input"
+                      />
+                      <div className="flex-1">
+                        <p className="font-bold text-lg">{item.productName}</p>
+                        <p className="text-sm text-muted-foreground">
+                          Size: {item.variantSizeName} — {formatCurrency(item.variantPrice)}
                         </p>
-                      )}
-                      
-                      <p className="mt-3 font-semibold text-primary">
-                        {formatCurrency(item.totalPrice)}
-                      </p>
+
+                        {item.toppings?.length > 0 && (
+                          <p className="mt-2 text-sm text-muted-foreground">
+                            Toppings: {item.toppings.map((t) => t.name).join(', ')}
+                          </p>
+                        )}
+
+                        <p className="mt-3 font-semibold text-primary">
+                          {formatCurrency(item.totalPrice)}
+                        </p>
+                      </div>
                     </div>
 
                     <div className="ml-4 flex flex-col gap-2">
@@ -219,17 +272,23 @@ export default function CartPage() {
               <CardTitle>Order Summary</CardTitle>
             </CardHeader>
             <CardContent>
+              <div className="mb-2 flex justify-between text-sm text-muted-foreground">
+                <span>Đã chọn</span>
+                <span>{selectedItemIds.length}/{items.length} sản phẩm</span>
+              </div>
               <div className="flex justify-between text-lg font-bold">
-                <span>Total</span>
+                <span>Total selected</span>
+                <span className="text-primary">{formatCurrency(selectedTotal)}</span>
+              </div>
+              <div className="mt-1 flex justify-between text-sm text-muted-foreground">
+                <span>Total cart</span>
                 <span className="text-primary">{formatCurrency(totalPrice)}</span>
               </div>
             </CardContent>
             <CardFooter className="flex flex-col gap-2">
-              <Link to="/checkout" className="w-full">
-                <Button className="w-full" size="lg">
-                  Proceed to Checkout
-                </Button>
-              </Link>
+              <Button className="w-full" size="lg" onClick={handleProceedToCheckout}>
+                Proceed to Checkout
+              </Button>
               <Link to="/products" className="w-full">
                 <Button variant="outline" className="w-full">
                   Continue Shopping

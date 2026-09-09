@@ -108,6 +108,15 @@ public class OrderServiceImpl implements OrderService{
         }
 
         List<CartItemEntity> cartItems = cart.getCartItems();
+        if (orderRequest.getCartItemIds() != null && !orderRequest.getCartItemIds().isEmpty()) {
+            List<Long> selectedCartItemIds = orderRequest.getCartItemIds();
+            cartItems = cartItems.stream()
+                    .filter(cartItem -> selectedCartItemIds.contains(cartItem.getId()))
+                    .toList();
+        }
+        if (cartItems.isEmpty()) {
+            throw new OrderNotFoundException("No cart items selected for order");
+        }
 
         // Tạo order entity
         OrderEntity order = orderMapper.toEntity(orderRequest);

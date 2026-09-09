@@ -6,11 +6,14 @@ import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Pattern;
 import lombok.Getter;
 
+import java.util.List;
+
 @Getter
 public class OrderRequest {
     private PaymentMethod paymentMethod;
     private String note;
     private String receivename;
+    private List<Long> cartItemIds;
 
     @NotNull
     @Pattern(regexp = "^[0-9]{10,11}$", message = "Phone must be 10-11 digits")

@@ -5,6 +5,8 @@ import com.example.drinkgo.order.enums.PaymentMethod;
 import com.example.drinkgo.user.dto.response.UserResponse;
 import lombok.*;
 
+import java.time.LocalDateTime;
+
 @Getter
 @Setter
 @Builder
@@ -26,4 +28,5 @@ public class OrderResponse {
     private String detailaddress;
     private OrderStatus status;
     private UserResponse user;
+    private LocalDateTime createdAt;
 }

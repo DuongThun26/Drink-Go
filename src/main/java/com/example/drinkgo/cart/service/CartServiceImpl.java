@@ -47,7 +47,9 @@ public class CartServiceImpl implements CartService {
     public CartResponse addItemToCart(String cartGuest, Long userId, CartItemRequest item) {
         CartEntity cartEntity = getCartEntity(cartGuest, userId);
         Optional<ProductVariantEntity> productVariant = productVariantRepository.findById(item.getProductVariantId());
-        List<ToppingEntity> toppings = toppingRepository.findAllById(item.getToppings());
+        List<ToppingEntity> toppings = item.getToppings() == null
+                ? List.of()
+                : toppingRepository.findAllById(item.getToppings());
         if (productVariant.isPresent()) {
             Optional<CartItemEntity> existingItem = cartEntity.getCartItems().stream()
                     .filter(cartItem -> cartItem.getProductVariant().getId().equals(item.getProductVariantId()))
@@ -79,7 +81,11 @@ public class CartServiceImpl implements CartService {
         CartEntity cartEntity = getCartEntity(cartGuest, userId);
         Optional<CartItemEntity> cartItem = cartItemRepository.findById(id);
         if (cartItem.isPresent() && cartItem.get().getCart().getId().equals(cartEntity.getId())) {
+            List<ToppingEntity> toppings = item.getToppings() == null
+                    ? List.of()
+                    : toppingRepository.findAllById(item.getToppings());
             cartItem.get().setQuantity(Long.valueOf(item.getQuantity()));
+            cartItem.get().setToppings(toppings);
             cartItemRepository.save(cartItem.get());
         }
         return mapToCartDto(cartEntity);

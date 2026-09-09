@@ -14,11 +14,7 @@ export const fetchProductById = createAsyncThunk(
   'product/fetchById',
   async (id, { rejectWithValue }) => {
     try {
-      const [product, variants] = await Promise.all([
-        productApi.getProduct(id),
-        productApi.getVariants(id),
-      ])
-      return { ...product, variants }
+      return await productApi.getProduct(id)
     } catch (error) {
       return rejectWithValue(error.message || 'Failed to fetch product')
     }

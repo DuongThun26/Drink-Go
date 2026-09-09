@@ -6,7 +6,7 @@ import { useDispatch } from 'react-redux'
 import { toast } from 'sonner'
 import { ChevronDown, ChevronUp } from 'lucide-react'
 import { createOrder } from '@/store/slices/orderSlice'
-import { fetchCart, resetCart, updateCartItem } from '@/store/slices/cartSlice'
+import { fetchCart, updateCartItem } from '@/store/slices/cartSlice'
 import { useCart } from '@/hooks/useCart'
 import { promotionApi } from '@/api/promotionApi'
 import { CheckoutSchema } from '@/utils/validationSchemas'
@@ -16,17 +16,20 @@ import { Label } from '@/components/ui/label'
 import { Textarea } from '@/components/ui/textarea'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Breadcrumb } from '@/components/ui/breadcrumb'
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog'
 import { formatCurrency } from '@/utils/formatters'
 import { PAYMENT_METHODS } from '@/constants/orderStatus'
 
 export default function CheckoutPage() {
   const dispatch = useDispatch()
   const navigate = useNavigate()
-  const { items, totalPrice } = useCart()
+  const { items, selectedItemIds } = useCart()
   const [promoCode, setPromoCode] = useState('')
   const [promoValid, setPromoValid] = useState(null)
+  const [promoInfo, setPromoInfo] = useState(null)
   const [validatingPromo, setValidatingPromo] = useState(false)
   const [expandedItems, setExpandedItems] = useState({})
+  const [showCheckoutForm, setShowCheckoutForm] = useState(false)
 
   const {
     register,
@@ -42,8 +45,16 @@ export default function CheckoutPage() {
   }, [dispatch])
 
   useEffect(() => {
-    if (items.length === 0) return
-  }, [items])
+    if (selectedItemIds.length === 0) {
+      setShowCheckoutForm(false)
+    }
+  }, [selectedItemIds])
+
+  const selectedItems = items.filter((item) => selectedItemIds.includes(item.id))
+  const selectedSubtotal = selectedItems.reduce((sum, item) => sum + (item.totalPrice || 0), 0)
+  const discountPercent = promoInfo?.discountPercent || 0
+  const discountAmount = Math.round((selectedSubtotal * discountPercent) / 100)
+  const finalAmount = Math.max(selectedSubtotal - discountAmount, 0)
 
   const toggleExpanded = (itemId) => {
     setExpandedItems((prev) => ({
@@ -83,25 +94,47 @@ export default function CheckoutPage() {
     if (!promoCode.trim()) return
     setValidatingPromo(true)
     try {
-      const valid = await promotionApi.validate({ code: promoCode })
-      setPromoValid(valid)
-      toast[valid ? 'success' : 'error'](valid ? 'Promo code applied!' : 'Invalid promo code')
+      const normalizedCode = promoCode.trim().toUpperCase()
+      await promotionApi.validate({ code: normalizedCode })
+      const promotions = await promotionApi.getAll()
+      const promotion = promotions.find((p) => p.code?.toUpperCase() === normalizedCode)
+      if (!promotion) {
+        throw new Error('Promotion details not found')
+      }
+      setPromoInfo(promotion)
+      setPromoValid(true)
+      toast.success('Promo code applied!')
     } catch {
       setPromoValid(false)
+      setPromoInfo(null)
       toast.error('Could not validate promo code')
     } finally {
       setValidatingPromo(false)
     }
   }
 
+  const handleStartCheckout = () => {
+    if (selectedItems.length === 0) {
+      toast.error('Please select at least one cart item')
+      return
+    }
+    setShowCheckoutForm(true)
+  }
+
   const onSubmit = async (data) => {
-    if (items.length === 0) {
-      toast.error('Your cart is empty')
+    if (selectedItems.length === 0) {
+      toast.error('No cart item selected')
       return
     }
     try {
-      const order = await dispatch(createOrder(data)).unwrap()
-      dispatch(resetCart())
+      const order = await dispatch(
+        createOrder({
+          ...data,
+          cartItemIds: selectedItems.map((item) => item.id),
+        })
+      ).unwrap()
+      setShowCheckoutForm(false)
+      dispatch(fetchCart())
       toast.success('Order placed successfully!')
       navigate(`/orders/${order.id}`)
     } catch (err) {
@@ -120,36 +153,52 @@ export default function CheckoutPage() {
     )
   }
 
+  if (selectedItems.length === 0) {
+    return (
+      <div className="container mx-auto px-4 py-16 text-center">
+        <p className="text-muted-foreground">Bạn chưa chọn sản phẩm nào để checkout.</p>
+        <Link to="/cart" className="mt-4 inline-block">
+          <Button>Quay lại giỏ hàng để chọn sản phẩm</Button>
+        </Link>
+      </div>
+    )
+  }
+
   return (
     <div className="container mx-auto px-4 py-8">
       <Breadcrumb items={[{ label: 'Cart', href: '/cart' }, { label: 'Checkout' }]} className="mb-6" />
       <h1 className="mb-8 text-3xl font-bold">Checkout</h1>
 
-      <form onSubmit={handleSubmit(onSubmit)} className="grid gap-8 lg:grid-cols-3">
+      <div className="grid gap-8 lg:grid-cols-3">
         <div className="space-y-6 lg:col-span-2">
           <Card>
             <CardHeader>
               <CardTitle>Order Items</CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
-              {items.map((item) => (
-                <div key={item.id || item.productVariantId} className="border rounded-lg p-4">
+              {selectedItems.map((item) => (
+                <div
+                  key={item.id || item.productVariantId}
+                  className="rounded-lg border border-primary bg-primary/5 p-4"
+                >
                   <div className="flex items-start justify-between">
-                    <div className="flex-1">
-                      <p className="font-bold">{item.productName}</p>
-                      <p className="text-sm text-muted-foreground">
-                        {item.variantSizeName} — {formatCurrency(item.variantPrice)} × {item.quantity}
-                      </p>
-                      
-                      {item.toppings?.length > 0 && (
-                        <p className="mt-2 text-sm text-green-600">
-                          ✓ Toppings: {item.toppings.map((t) => t.name).join(', ')}
+                    <div className="flex flex-1 items-start gap-3">
+                      <div className="flex-1">
+                        <p className="font-bold">{item.productName}</p>
+                        <p className="text-sm text-muted-foreground">
+                          {item.variantSizeName} — {formatCurrency(item.variantPrice)} × {item.quantity}
                         </p>
-                      )}
-                      
-                      <p className="mt-2 font-semibold text-primary">
-                        {formatCurrency(item.totalPrice)}
-                      </p>
+
+                        {item.toppings?.length > 0 && (
+                          <p className="mt-2 text-sm text-green-600">
+                            ✓ Toppings: {item.toppings.map((t) => t.name).join(', ')}
+                          </p>
+                        )}
+
+                        <p className="mt-2 font-semibold text-primary">
+                          {formatCurrency(item.totalPrice)}
+                        </p>
+                      </div>
                     </div>
 
                     {item.availableToppings?.length > 0 && (
@@ -157,7 +206,10 @@ export default function CheckoutPage() {
                         type="button"
                         variant="outline"
                         size="sm"
-                        onClick={() => toggleExpanded(item.id)}
+                        onClick={(e) => {
+                          e.stopPropagation()
+                          toggleExpanded(item.id)
+                        }}
                         className="ml-4 gap-2"
                       >
                         {expandedItems[item.id] ? (
@@ -185,12 +237,14 @@ export default function CheckoutPage() {
                             <label
                               key={topping.id}
                               className="flex cursor-pointer items-center justify-between rounded-md border p-2 hover:bg-muted/50"
+                              onClick={(e) => e.stopPropagation()}
                             >
                               <span className="flex items-center gap-2">
                                 <input
                                   type="checkbox"
                                   checked={isSelected}
                                   onChange={() => handleToppingToggle(item, topping.id, isSelected)}
+                                  onClick={(e) => e.stopPropagation()}
                                   className="rounded border-input"
                                 />
                                 {topping.name}
@@ -209,11 +263,79 @@ export default function CheckoutPage() {
             </CardContent>
           </Card>
 
+        </div>
+
+        <div className="space-y-4">
           <Card>
             <CardHeader>
-              <CardTitle>Shipping Information</CardTitle>
+              <CardTitle>Order Summary</CardTitle>
             </CardHeader>
-            <CardContent className="grid gap-4 sm:grid-cols-2">
+            <CardContent className="space-y-4">
+              <div className="space-y-2 text-sm">
+                {selectedItems.map((item) => (
+                  <div key={item.id || item.productVariantId} className="flex justify-between">
+                    <span>
+                      {item.productName} × {item.quantity}
+                    </span>
+                    <span>{formatCurrency(item.totalPrice)}</span>
+                  </div>
+                ))}
+              </div>
+              <div className="border-t pt-4">
+                <div className="space-y-2 text-sm">
+                  <div className="flex justify-between">
+                    <span>Subtotal</span>
+                    <span>{formatCurrency(selectedSubtotal)}</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span>Discount</span>
+                    <span>-{formatCurrency(discountAmount)}</span>
+                  </div>
+                </div>
+                <div className="mt-3 flex justify-between border-t pt-3 font-bold">
+                  <span>Total after discount</span>
+                  <span className="text-primary">{formatCurrency(finalAmount)}</span>
+                </div>
+              </div>
+
+              <div className="space-y-2">
+                <Label>Promotion code</Label>
+                <div className="flex gap-2">
+                  <Input
+                    value={promoCode}
+                    onChange={(e) => {
+                      setPromoCode(e.target.value.toUpperCase())
+                      setPromoValid(null)
+                      setPromoInfo(null)
+                    }}
+                    placeholder="Enter code"
+                  />
+                  <Button type="button" variant="outline" loading={validatingPromo} onClick={validatePromo}>
+                    Apply
+                  </Button>
+                </div>
+                {promoValid === true && (
+                  <p className="text-xs text-green-600">
+                    Applied {promoInfo?.code} ({discountPercent}%)
+                  </p>
+                )}
+              </div>
+
+              <Button type="button" className="w-full" size="lg" onClick={handleStartCheckout}>
+                Order Selected Items
+              </Button>
+            </CardContent>
+          </Card>
+        </div>
+      </div>
+
+      <Dialog open={showCheckoutForm} onOpenChange={setShowCheckoutForm}>
+        <DialogContent className="max-h-[85vh] overflow-y-auto sm:max-w-2xl">
+          <DialogHeader>
+            <DialogTitle>Shipping Information</DialogTitle>
+          </DialogHeader>
+          <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
+            <div className="grid gap-4 sm:grid-cols-2">
               <div className="space-y-2 sm:col-span-2">
                 <Label htmlFor="receivename">Full name</Label>
                 <Input id="receivename" {...register('receivename')} error={!!errors.receivename} />
@@ -248,14 +370,10 @@ export default function CheckoutPage() {
                 <Label htmlFor="note">Note (optional)</Label>
                 <Textarea id="note" {...register('note')} />
               </div>
-            </CardContent>
-          </Card>
+            </div>
 
-          <Card>
-            <CardHeader>
-              <CardTitle>Payment Method</CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-3">
+            <div className="space-y-3">
+              <Label>Payment Method</Label>
               {Object.entries(PAYMENT_METHODS).map(([value, label]) => (
                 <label
                   key={value}
@@ -268,60 +386,14 @@ export default function CheckoutPage() {
               {errors.paymentMethod && (
                 <p className="text-xs text-destructive">{errors.paymentMethod.message}</p>
               )}
-            </CardContent>
-          </Card>
-        </div>
+            </div>
 
-        <div className="space-y-4">
-          <Card>
-            <CardHeader>
-              <CardTitle>Order Summary</CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <div className="space-y-2 text-sm">
-                {items.map((item) => (
-                  <div key={item.id || item.productVariantId} className="flex justify-between">
-                    <span>
-                      {item.productName} × {item.quantity}
-                    </span>
-                    <span>{formatCurrency(item.totalPrice)}</span>
-                  </div>
-                ))}
-              </div>
-              <div className="border-t pt-4">
-                <div className="flex justify-between font-bold">
-                  <span>Total</span>
-                  <span className="text-primary">{formatCurrency(totalPrice)}</span>
-                </div>
-              </div>
-
-              <div className="space-y-2">
-                <Label>Promotion code</Label>
-                <div className="flex gap-2">
-                  <Input
-                    value={promoCode}
-                    onChange={(e) => {
-                      setPromoCode(e.target.value.toUpperCase())
-                      setPromoValid(null)
-                    }}
-                    placeholder="Enter code"
-                  />
-                  <Button type="button" variant="outline" loading={validatingPromo} onClick={validatePromo}>
-                    Apply
-                  </Button>
-                </div>
-                {promoValid === true && (
-                  <p className="text-xs text-green-600">Promo code is valid</p>
-                )}
-              </div>
-
-              <Button type="submit" className="w-full" size="lg">
-                Place Order
-              </Button>
-            </CardContent>
-          </Card>
-        </div>
-      </form>
+            <Button type="submit" className="w-full" size="lg">
+              Place Order
+            </Button>
+          </form>
+        </DialogContent>
+      </Dialog>
     </div>
   )
 }

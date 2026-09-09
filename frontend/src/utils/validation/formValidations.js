@@ -78,15 +78,10 @@ export const AddressSchema = z.object({
 // ============= PROMOTION VALIDATION =============
 
 export const PromoCodeSchema = z.object({
-  code: z.string().min(1, 'Promo code is required').toUpperCase(),
+  code: z.string().min(1, 'Promo code is required').transform(val => val.toUpperCase()),
 });
 
-// Type exports for TypeScript compatibility (if needed)
-export type LoginSchemaType = z.infer<typeof LoginSchema>;
-export type SignupSchemaType = z.infer<typeof SignupSchema>;
-export type OrderSchemaType = z.infer<typeof OrderSchema>;
-export type UserProfileSchemaType = z.infer<typeof UserProfileSchema>;
-export type AddressSchemaType = z.infer<typeof AddressSchema>;
-export type ChangePasswordSchemaType = z.infer<typeof ChangePasswordSchema>;
-export type PromoCodeSchemaType = z.infer<typeof PromoCodeSchema>;
+// Type exports for TypeScript compatibility removed
+// This file is JavaScript, not TypeScript
+// If TypeScript support is needed, rename to formValidations.ts
 

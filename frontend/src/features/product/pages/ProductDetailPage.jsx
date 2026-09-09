@@ -5,6 +5,7 @@ import { toast } from 'sonner'
 import { Minus, Plus, ShoppingCart } from 'lucide-react'
 import { fetchProductById, clearSelectedProduct, fetchProducts } from '@/store/slices/productSlice'
 import { addCartItem } from '@/store/slices/cartSlice'
+import { toppingApi } from '@/api/toppingApi'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { Breadcrumb } from '@/components/ui/breadcrumb'
@@ -20,6 +21,7 @@ export default function ProductDetailPage() {
 
   const [selectedVariant, setSelectedVariant] = useState(null)
   const [selectedToppings, setSelectedToppings] = useState([])
+  const [availableToppings, setAvailableToppings] = useState([])
   const [quantity, setQuantity] = useState(1)
   const [adding, setAdding] = useState(false)
 
@@ -35,6 +37,23 @@ export default function ProductDetailPage() {
     }
   }, [product, selectedVariant])
 
+  useEffect(() => {
+    setSelectedToppings([])
+  }, [product?.id])
+
+  useEffect(() => {
+    const fetchToppings = async () => {
+      try {
+        const toppings = await toppingApi.getAll()
+        setAvailableToppings(Array.isArray(toppings) ? toppings : [])
+      } catch (err) {
+        toast.error(err?.message || 'Failed to load toppings')
+        setAvailableToppings([])
+      }
+    }
+    fetchToppings()
+  }, [])
+
   const related = allProducts
     .filter((p) => p.category === product?.category && p.id !== product?.id)
     .slice(0, 4)
@@ -45,7 +64,9 @@ export default function ProductDetailPage() {
     )
   }
 
-  const toppingTotal = (product?.toppings || [])
+  const toppingsForSelection = product?.toppings?.length > 0 ? product.toppings : availableToppings
+
+  const toppingTotal = toppingsForSelection
     .filter((t) => selectedToppings.includes(t.id))
     .reduce((sum, t) => sum + (t.price || 0), 0)
 
@@ -156,11 +177,11 @@ export default function ProductDetailPage() {
             </div>
           )}
 
-          {product.toppings?.length > 0 && (
+          {toppingsForSelection.length > 0 && (
             <div>
               <h3 className="mb-3 font-semibold">Toppings</h3>
               <div className="space-y-2">
-                {product.toppings.map((topping) => (
+                {toppingsForSelection.map((topping) => (
                   <label
                     key={topping.id}
                     className="flex cursor-pointer items-center justify-between rounded-md border p-3 hover:bg-muted/50"
